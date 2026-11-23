@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Memory Creation Studio website
 
-## Getting Started
+Website for a hands-on memory creation studio: customers book a visit, choose ready-made
+scrapbook pages or design their own with drag and drop, pick a drink, and confirm their booking.
 
-First, run the development server:
+Built with Next.js 16 (App Router), Tailwind CSS 4 and Supabase (database + image storage).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Pages
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Path | What it is |
+| --- | --- |
+| `/` | Home page |
+| `/templates` | All ready-made pages, with filters |
+| `/pricing`, `/shop` | Prices; shop & café menu |
+| `/book` → `/book/pages` → `/book/drinks` → `/book/checkout` | The 4 booking steps |
+| `/admin` | Upload page elements (with printed size and price) and see bookings. Password protected. |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Run it locally
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Install Node.js 22 or newer.
+2. Copy `.env.example` to `.env.local` and fill it in:
+   - `ADMIN_PASSWORD`: password for `/admin` (any username).
+   - `SUPABASE_SECRET_KEY`: Supabase dashboard → Project Settings → API Keys → Secret keys. Server-only; never share it.
+   - `NEXT_PUBLIC_SITE_URL`: your public website address once you have one (used for link previews).
+3. Install and start:
 
-## Learn More
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Open http://localhost:3000.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Where to change things
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Prices, opening times, studio details, templates, shop items:** `src/lib/data.ts`
+- **Printed page size (A4):** `src/lib/pageSize.ts`
+- **Colours and fonts:** `src/app/globals.css`, `src/app/layout.tsx`
 
-## Deploy on Vercel
+## Supabase
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `elements` table: uploaded elements (name, price, printed size in cm, image file).
+- `bookings` table: every booking, including the full order and any custom page designs.
+- `elements` storage bucket: element images (publicly readable; uploads only through the server).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Both tables have row-level security on with no public policies, so only the website's server
+(using the secret key) can read or write them.

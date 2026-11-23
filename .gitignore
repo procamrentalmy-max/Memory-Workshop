@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# studio data: uploads, elements, bookings (contains customer details)
+/data/
+!.env.example
