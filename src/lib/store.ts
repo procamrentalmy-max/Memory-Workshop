@@ -1,5 +1,4 @@
 // Server-only data access: elements, uploads and bookings, stored in Supabase.
-import { orderPhotoFiles } from "./orderPhotos";
 import { ELEMENTS_BUCKET, PHOTOS_BUCKET, SITE_FILES_BUCKET, db } from "./supabase";
 import type { CafeMenu, Element, Order, Rect } from "./types";
 
@@ -178,71 +177,65 @@ export async function removeCafeMenu() {
   if (previous) await db().storage.from(SITE_FILES_BUCKET).remove([previous.file]);
 }
 
-/* ───────── Customer photos: clean-up of photos never used in a booking ───────── */
+/* ───────── Customer photos: retention ─────────
+ * The rules live in the database function customer_photo_status():
+ *   booked        in a booking whose session hasn't ended yet  -> kept
+ *   session_over  its booking's session has ended (arrival + 1.5 h) -> deleted
+ *   draft         not booked, used in the last PHOTO_KEEP_DAYS days -> kept
+ *   abandoned     not booked and untouched for PHOTO_KEEP_DAYS days -> deleted
+ * An hourly Supabase job (edge function "cleanup-photos") deletes expired photos automatically.
+ */
 
-/** Photos newer than this are kept: their owner may still be choosing pages. */
+/** Must match the 7 days in customer_photo_status() in the database. */
 export const PHOTO_KEEP_DAYS = 7;
 
+type PhotoStatusRow = { file: string; bytes: number; status: "booked" | "session_over" | "draft" | "abandoned"; expires_at: string };
+
 export type PhotoCleanupReport = {
-  total: number; // photos in storage
-  inBookings: number; // used in at least one booking (never deleted)
-  recent: number; // unused but uploaded in the last PHOTO_KEEP_DAYS days (kept for now)
-  unused: { name: string; size: number }[]; // unused and older: safe to delete
-  unusedBytes: number;
+  total: number;
   totalBytes: number;
+  booked: number; // waiting for their session
+  drafts: number; // not booked yet, used recently
+  expired: { name: string; size: number }[]; // session over, or untouched draft: will be deleted
+  expiredBytes: number;
 };
 
-async function listCustomerPhotos() {
-  const all: { name: string; createdAt: string; size: number }[] = [];
-  for (let offset = 0; ; offset += 1000) {
-    const { data, error } = await db().storage.from(PHOTOS_BUCKET).list("", {
-      limit: 1000, offset, sortBy: { column: "created_at", order: "asc" },
-    });
-    if (error) throw new Error(`Could not list photos: ${error.message}`);
-    for (const f of data) {
-      if (f.created_at && f.metadata) all.push({ name: f.name, createdAt: f.created_at, size: Number(f.metadata.size ?? 0) });
-    }
-    if (data.length < 1000) break;
-  }
-  return all;
-}
-
-/** Every photo file used by any booking. */
-async function photosInBookings(): Promise<Set<string>> {
-  const used = new Set<string>();
-  for (let from = 0; ; from += 1000) {
-    const { data, error } = await db().from("bookings").select("order").range(from, from + 999);
-    if (error) throw new Error(`Could not load bookings: ${error.message}`);
-    for (const row of data as { order: Order }[]) for (const f of orderPhotoFiles(row.order)) used.add(f);
-    if (data.length < 1000) break;
-  }
-  return used;
-}
-
 export async function getPhotoCleanupReport(): Promise<PhotoCleanupReport> {
-  const [photos, used] = await Promise.all([listCustomerPhotos(), photosInBookings()]);
-  const cutoff = Date.now() - PHOTO_KEEP_DAYS * 24 * 3600 * 1000;
-  const report: PhotoCleanupReport = { total: photos.length, inBookings: 0, recent: 0, unused: [], unusedBytes: 0, totalBytes: 0 };
-  for (const p of photos) {
-    report.totalBytes += p.size;
-    if (used.has(p.name)) report.inBookings++;
-    else if (new Date(p.createdAt).getTime() > cutoff) report.recent++;
+  const { data, error } = await db().rpc("customer_photo_status");
+  if (error) throw new Error(`Could not check photos: ${error.message}`);
+  const report: PhotoCleanupReport = { total: 0, totalBytes: 0, booked: 0, drafts: 0, expired: [], expiredBytes: 0 };
+  for (const r of data as PhotoStatusRow[]) {
+    const bytes = Number(r.bytes);
+    report.total++;
+    report.totalBytes += bytes;
+    if (r.status === "booked") report.booked++;
+    else if (r.status === "draft") report.drafts++;
     else {
-      report.unused.push({ name: p.name, size: p.size });
-      report.unusedBytes += p.size;
+      report.expired.push({ name: r.file, size: bytes });
+      report.expiredBytes += bytes;
     }
   }
   return report;
 }
 
-/** Deletes photos that aren't in any booking and are older than PHOTO_KEEP_DAYS. Re-checks everything first. */
-export async function deleteUnusedPhotos(): Promise<{ deleted: number; bytes: number }> {
-  const { unused, unusedBytes } = await getPhotoCleanupReport();
-  for (let i = 0; i < unused.length; i += 100) {
-    const { error } = await db().storage.from(PHOTOS_BUCKET).remove(unused.slice(i, i + 100).map((p) => p.name));
+/** Deletes expired photos (re-checked against the rules first). The hourly job does the same automatically. */
+export async function deleteExpiredPhotos(): Promise<{ deleted: number; bytes: number }> {
+  const { expired, expiredBytes } = await getPhotoCleanupReport();
+  for (let i = 0; i < expired.length; i += 100) {
+    const names = expired.slice(i, i + 100).map((p) => p.name);
+    const { error } = await db().storage.from(PHOTOS_BUCKET).remove(names);
     if (error) throw new Error(`Could not delete photos: ${error.message}`);
+    await db().from("customer_photos").delete().in("file", names);
   }
-  return { deleted: unused.length, bytes: unusedBytes };
+  return { deleted: expired.length, bytes: expiredBytes };
+}
+
+/** Records that these photos were just used, so unbooked drafts are kept for another PHOTO_KEEP_DAYS days. */
+export async function touchPhotos(files: string[]): Promise<number> {
+  if (files.length === 0) return 0;
+  const { data, error } = await db().rpc("touch_customer_photos", { files });
+  if (error) throw new Error(`Could not update photos: ${error.message}`);
+  return Number(data ?? 0);
 }
 
 /** Which of these photo files no longer exist (e.g. cleaned up before the customer booked). */

@@ -43,5 +43,20 @@ Built with Next.js 16 (App Router), Tailwind CSS 4 and Supabase (database + imag
 - `bookings` table: every booking, including the full order and any custom page designs.
 - `elements` storage bucket: element images (publicly readable; uploads only through the server).
 
-Both tables have row-level security on with no public policies, so only the website's server
+- `customer-photos` storage bucket (private): photos customers put in photo frames.
+- `site-files` storage bucket (public): the café menu PDF.
+- `customer_photos` and `site_settings` tables: photo activity, and settings such as the current café menu.
+
+All tables have row-level security on with no public policies, so only the website's server
 (using the secret key) can read or write them.
+
+### Customer photo retention
+
+The rules are in the database function `customer_photo_status()`:
+
+- Photos in a booking are kept until the session ends (arrival + 1.5 hours), then deleted.
+- Photos not yet booked are kept while the customer keeps using them, and deleted after 7 days without use
+  (the booking pages tell the server whenever a customer opens them).
+
+The edge function `supabase/functions/cleanup-photos` deletes expired photos. It runs every hour from
+`pg_cron` (job `cleanup-customer-photos`). The admin page shows the counts and can run the clean-up straight away.

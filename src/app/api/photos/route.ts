@@ -1,3 +1,4 @@
+import { touchPhotos } from "@/lib/store";
 import { PHOTOS_BUCKET, db } from "@/lib/supabase";
 
 // Photos are shrunk in the browser first (max 3000 px, JPEG), so they stay well under
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
       upsert: false,
     });
     if (error) throw new Error(error.message);
+    await touchPhotos([name]); // starts its 7-day "draft" clock
   } catch (e) {
     console.error("Photo upload failed:", e);
     return Response.json({ error: "We couldn't save your photo. Please try again." }, { status: 500 });

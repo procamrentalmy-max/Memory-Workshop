@@ -5,14 +5,14 @@ import { useState } from "react";
 
 const mb = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(bytes < 10 * 1024 * 1024 ? 1 : 0)} MB`;
 
-/** Deletes unused customer photos after a confirmation. The server re-checks which ones are safe to delete. */
+/** Deletes expired customer photos after a confirmation. The server re-checks which ones have expired. */
 export function PhotoCleanupButton({ count, bytes }: { count: number; bytes: number }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
   async function clean() {
-    if (!confirm(`Delete ${count} unused photo${count === 1 ? "" : "s"} (${mb(bytes)})? Photos in bookings are never deleted. This can't be undone.`)) return;
+    if (!confirm(`Delete ${count} expired photo${count === 1 ? "" : "s"} (${mb(bytes)})? Photos for upcoming sessions and recent drafts are kept. This can't be undone.`)) return;
     setBusy(true);
     setMessage("");
     const res = await fetch("/api/admin/photos", { method: "POST" });
@@ -26,7 +26,7 @@ export function PhotoCleanupButton({ count, bytes }: { count: number; bytes: num
   return (
     <div className="text-right">
       <button type="button" onClick={clean} disabled={busy || count === 0} className="btn btn-primary disabled:opacity-50">
-        {busy ? "Cleaning up…" : count ? `Delete ${count} unused photo${count === 1 ? "" : "s"} (${mb(bytes)})` : "Nothing to clean up"}
+        {busy ? "Cleaning up…" : count ? `Delete ${count} expired photo${count === 1 ? "" : "s"} (${mb(bytes)})` : "Nothing to clean up"}
       </button>
       {message && <p className="mt-2 text-sm" role="status">{message}</p>}
     </div>

@@ -98,11 +98,11 @@ async function PhotoCleanup() {
     <div className="mt-4 flex flex-wrap items-end justify-between gap-6 rounded-2xl bg-card p-6 shadow-sm">
       <dl className="flex flex-wrap gap-x-10 gap-y-4">
         {stat("Photos stored", String(r.total), mb(r.totalBytes))}
-        {stat("In bookings", String(r.inBookings), "always kept")}
-        {stat("Recent, not booked yet", String(r.recent), `kept for ${PHOTO_KEEP_DAYS} days`)}
-        {stat("Unused", String(r.unused.length), mb(r.unusedBytes))}
+        {stat("Booked", String(r.booked), "kept until the session ends")}
+        {stat("Drafts", String(r.drafts), `kept ${PHOTO_KEEP_DAYS} days after last use`)}
+        {stat("Expired", String(r.expired.length), mb(r.expiredBytes))}
       </dl>
-      <PhotoCleanupButton count={r.unused.length} bytes={r.unusedBytes} />
+      <PhotoCleanupButton count={r.expired.length} bytes={r.expiredBytes} />
     </div>
   );
 }
@@ -137,6 +137,10 @@ async function BookingList() {
                 {(() => {
                   // Customer photos to print, in page order.
                   const files = orderPhotoFiles(b.order);
+                  const v = b.order.visit;
+                  // Malaysia is UTC+8; a session lasts about 1.5 hours.
+                  const sessionOver = v && new Date(`${v.date}T${v.time}:00+08:00`).getTime() + 90 * 60_000 < Date.now();
+                  if (files.length && sessionOver) return <span className="text-ink-soft">Removed after visit</span>;
                   return files.length ? (
                     <span className="flex flex-wrap gap-x-2">
                       {files.map((f, i) => (
@@ -188,8 +192,9 @@ export default function AdminPage() {
       <section className="mt-14">
         <h2 className="font-display text-2xl font-semibold">Customer photos</h2>
         <p className="mt-1 max-w-2xl text-sm text-ink-soft">
-          Photos customers add to frames are stored even if they never book. Clean-up deletes photos that aren&apos;t in any
-          booking and are older than {PHOTO_KEEP_DAYS} days. Photos in bookings are never deleted.
+          Photos in a booking are kept until the session is over (arrival + 1.5 hours). Photos customers added but haven&apos;t
+          booked are kept while they keep working on their pages, and deleted after {PHOTO_KEEP_DAYS} days without use.
+          Expired photos are deleted automatically every hour; the button does it straight away.
         </p>
         <Suspense fallback={<p className="mt-4 text-ink-soft">Counting photos…</p>}><PhotoCleanup /></Suspense>
       </section>
