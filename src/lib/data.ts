@@ -13,6 +13,7 @@ export const PRICING = {
   sessionPerPersonPerHour: 16, // RM
   perPage: 9, // RM, each preset page
   customPageBase: 0, // RM, base price of a drag & drop page (elements are charged individually)
+  collagePage: 9, // RM, one A4 photo collage, printed
   currency: "RM",
 };
 

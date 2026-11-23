@@ -10,6 +10,7 @@ const NAV = [
   { href: "/pricing", label: "Pricing" },
   { href: "/shop", label: "Shop & Café" },
   { href: "/book?mode=custom", label: "Design Your Own" },
+  { href: "/collage", label: "Photo Collage" },
 ];
 
 export function Header() {
@@ -29,7 +30,7 @@ export function Header() {
           <span className="font-display text-xl font-semibold tracking-tight">{STUDIO.name}</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex" aria-label="Main">
+        <nav className="hidden items-center gap-6 lg:flex" aria-label="Main">
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -48,7 +49,7 @@ export function Header() {
 
         <button
           type="button"
-          className="rounded-md p-2 md:hidden"
+          className="rounded-md p-2 lg:hidden"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
@@ -60,7 +61,7 @@ export function Header() {
       </div>
 
       {open && (
-        <nav className="border-t border-line bg-paper px-4 pb-4 md:hidden" aria-label="Mobile">
+        <nav className="border-t border-line bg-paper px-4 pb-4 lg:hidden" aria-label="Mobile">
           {NAV.map((item) => (
             <Link
               key={item.href}

@@ -6,6 +6,7 @@ import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { addBooking, getElementsByIds, missingPhotos } from "@/lib/store";
 import { elementBox } from "@/lib/pageSize";
 import { LAYOUT_SLOTS } from "@/components/TemplatePreview";
+import { MAX_COLLAGE_NODES, type CollageNode } from "@/lib/collage";
 import { PHOTO_FILE_RE, type CanvasItem, type Order, type OrderPage, type PhotoFill } from "@/lib/types";
 
 export type CheckoutState =
@@ -24,6 +25,24 @@ function cleanFill(raw: unknown): PhotoFill | null {
   const h = Math.round(num(f.h, 0, 6000));
   if (!w || !h) return null;
   return { file: f.file, w, h, zoom: num(f.zoom, 1, 4), x: num(f.x, 0, 100), y: num(f.y, 0, 100) };
+}
+
+/** Rebuilds a collage layout from trusted values only (bounded size and depth). */
+function cleanCollageNode(raw: unknown, depth: number, budget: { count: number }): CollageNode | null {
+  const n = raw as Record<string, unknown> | null;
+  if (!n || typeof n !== "object" || depth > 10 || ++budget.count > MAX_COLLAGE_NODES) return null;
+  const id = String(n.id ?? "").slice(0, 20) || "n";
+  if (n.kind === "leaf") {
+    const photo = cleanFill(n.photo);
+    return { id, kind: "leaf", ...(photo ? { photo } : {}) };
+  }
+  if (n.kind === "split" && (n.dir === "v" || n.dir === "h")) {
+    const a = cleanCollageNode(n.a, depth + 1, budget);
+    const b = cleanCollageNode(n.b, depth + 1, budget);
+    if (!a || !b) return null;
+    return { id, kind: "split", dir: n.dir, at: num(n.at, 3, 97), a, b };
+  }
+  return null;
 }
 
 const color = (v: unknown) => (typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v) ? v : "#ffffff");
@@ -64,6 +83,10 @@ async function sanitiseOrder(raw: unknown): Promise<Order | string> {
         }
         pages.push({ kind: "preset", id, templateId: tpl.id, ...(Object.keys(photos).length ? { photos } : {}) });
       }
+    } else if (p?.kind === "collage") {
+      const root = cleanCollageNode(p.collage?.root, 0, { count: 0 });
+      const orientation = p.collage?.orientation === "landscape" ? "landscape" : "portrait";
+      if (root) pages.push({ kind: "collage", id, collage: { orientation, root } });
     } else if (p?.kind === "custom" && Array.isArray(p.items)) {
       const items: CanvasItem[] = [];
       for (const it of p.items.slice(0, 200)) {

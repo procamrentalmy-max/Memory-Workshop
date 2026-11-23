@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { TEMPLATES, formatRM, to12h } from "@/lib/data";
 import { PAGE, sizeLabel } from "@/lib/pageSize";
+import { layout } from "@/lib/collage";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { PHOTO_KEEP_DAYS, getBookings, getCafeMenu, getElements, getPhotoCleanupReport } from "@/lib/store";
 import { elementSrc, siteFileSrc } from "@/lib/types";
@@ -130,7 +131,9 @@ async function BookingList() {
               <td className="px-3 py-2">{b.name}<br /><span className="text-xs text-ink-soft">{b.email} · {b.phone}</span></td>
               <td className="px-3 py-2">
                 {b.order.pages.map((p) =>
-                  p.kind === "preset" ? TEMPLATES.find((t) => t.id === p.templateId)?.name : `Custom design (${p.items.length} items)`,
+                  p.kind === "preset" ? TEMPLATES.find((t) => t.id === p.templateId)?.name
+                    : p.kind === "collage" ? `Photo collage (${p.collage.orientation}, ${layout(p.collage.root).leaves.length} sections)`
+                    : `Custom design (${p.items.length} items)`,
                 ).join(", ") || "—"}
               </td>
               <td className="px-3 py-2">

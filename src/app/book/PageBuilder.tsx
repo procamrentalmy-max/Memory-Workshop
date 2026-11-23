@@ -1,12 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CATEGORIES, PRICING, TEMPLATES, formatRM } from "@/lib/data";
 import { PAGE, elementBox, sizeLabel } from "@/lib/pageSize";
-import { customPagePrice, orderTotals } from "@/lib/pricing";
+import { customPagePrice, orderTotals, pagePrice } from "@/lib/pricing";
 import { elementSrc, type CanvasItem, type Element, type ImageItem, type Order, type OrderPage, type PhotoFill, type TextItem } from "@/lib/types";
 import { CanvasView, ItemContent, boxStyle } from "@/components/CanvasView";
+import { CollageView } from "@/components/CollageView";
 import { LAYOUT_SLOTS, TemplatePreview } from "@/components/TemplatePreview";
 import { ActionBar, nextBtn } from "./ActionBar";
 import { PhotoEditor } from "./PhotoEditor";
@@ -60,6 +62,7 @@ function Builder({ order, elements, elementsUnavailable }: { order: Order; eleme
         {mode === "preset"
           ? `Pick a ready-made page from the list, ${formatRM(PRICING.perPage)} each.`
           : "Design your own page: drag elements onto it and arrange them. Sections and text boxes are free; you only pay for the elements you use."}
+        {" "}Or <Link href="/collage" className="font-semibold text-accent underline">make a photo collage</Link> from your own photos.
       </p>
 
       <div className="mt-6">
@@ -696,14 +699,17 @@ function YourPages({ order, onEdit, onEditPreset }: {
           const tpl = p.kind === "preset" ? TEMPLATES.find((t) => t.id === p.templateId) : null;
           return (
             <li key={p.id} className="w-36 shrink-0 rounded-xl border border-line bg-card p-2">
-              {p.kind === "preset" && tpl ? <TemplatePreview template={tpl} photos={p.photos} /> : p.kind === "custom" ? <CanvasView items={p.items} background={p.background} /> : null}
-              <p className="mt-2 truncate text-sm font-semibold">{tpl ? tpl.name : "Your design"}</p>
+              {p.kind === "preset" && tpl ? <TemplatePreview template={tpl} photos={p.photos} />
+                : p.kind === "custom" ? <CanvasView items={p.items} background={p.background} />
+                : p.kind === "collage" ? <CollageView collage={p.collage} /> : null}
+              <p className="mt-2 truncate text-sm font-semibold">{tpl ? tpl.name : p.kind === "collage" ? "Photo collage" : "Your design"}</p>
               <p className="text-xs text-ink-soft">
-                {formatRM(p.kind === "preset" ? PRICING.perPage : customPagePrice(p.items))}
+                {formatRM(pagePrice(p))}
                 {p.kind === "preset" && tpl && LAYOUT_SLOTS[tpl.layout] > 0 && ` · ${Object.keys(p.photos ?? {}).length}/${LAYOUT_SLOTS[tpl.layout]} photos`}
               </p>
               <div className="mt-1 flex gap-3 text-xs font-semibold">
                 {p.kind === "custom" && <button type="button" onClick={() => edit(p.id)} className="text-ink hover:underline">Edit</button>}
+                {p.kind === "collage" && <Link href={`/collage?edit=${p.id}`} className="text-ink hover:underline">Edit</Link>}
                 {p.kind === "preset" && tpl && LAYOUT_SLOTS[tpl.layout] > 0 && (
                   <button type="button" onClick={() => onEditPreset(p)} className="text-ink hover:underline">Photos</button>
                 )}

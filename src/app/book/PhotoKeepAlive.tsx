@@ -1,20 +1,25 @@
 "use client";
 
 import { useEffect } from "react";
+import { collagePhotos, type CollageNode } from "@/lib/collage";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { useOrder } from "./orderStore";
 
 const DRAFT_KEY = "pm-draft-v1";
 const THROTTLE_MS = 60 * 60 * 1000; // tell the server at most once an hour for the same photos
 
-/** Photos on the unsaved drag & drop page (kept in this browser). */
+/** Photos on unsaved work kept in this browser: the drag & drop page and the photo collage. */
 function draftPhotoFiles(): string[] {
+  const files: string[] = [];
   try {
     const draft = JSON.parse(window.localStorage.getItem(DRAFT_KEY) ?? "null");
-    return orderPhotoFiles({ visit: null, drinks: {}, pages: [{ kind: "custom", id: "draft", items: draft?.items ?? [], background: "" }] });
-  } catch {
-    return [];
-  }
+    files.push(...orderPhotoFiles({ visit: null, drinks: {}, pages: [{ kind: "custom", id: "draft", items: draft?.items ?? [], background: "" }] }));
+  } catch { /* ignore */ }
+  try {
+    const collage = JSON.parse(window.localStorage.getItem("pm-collage-v1") ?? "null") as { root?: CollageNode } | null;
+    if (collage?.root) files.push(...collagePhotos(collage.root).map((f) => f.file));
+  } catch { /* ignore */ }
+  return files;
 }
 
 /**
