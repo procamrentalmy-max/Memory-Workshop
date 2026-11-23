@@ -3,10 +3,12 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { TEMPLATES, formatRM, to12h } from "@/lib/data";
 import { PAGE, sizeLabel } from "@/lib/pageSize";
-import { getBookings, getCafeMenu, getElements } from "@/lib/store";
+import { orderPhotoFiles } from "@/lib/orderPhotos";
+import { PHOTO_KEEP_DAYS, getBookings, getCafeMenu, getElements, getPhotoCleanupReport } from "@/lib/store";
 import { elementSrc, siteFileSrc } from "@/lib/types";
 import { removeElement, saveElement } from "./actions";
 import { MenuUploader } from "./MenuUploader";
+import { PhotoCleanupButton } from "./PhotoCleanupButton";
 import { UploadForm } from "./UploadForm";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
@@ -81,6 +83,30 @@ async function CafeMenuStatus() {
   );
 }
 
+async function PhotoCleanup() {
+  await connection();
+  const r = await getPhotoCleanupReport();
+  const mb = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  const stat = (label: string, value: string, note?: string) => (
+    <div>
+      <dt className="text-xs text-ink-soft">{label}</dt>
+      <dd className="font-display text-2xl font-semibold">{value}</dd>
+      {note && <dd className="text-xs text-ink-soft">{note}</dd>}
+    </div>
+  );
+  return (
+    <div className="mt-4 flex flex-wrap items-end justify-between gap-6 rounded-2xl bg-card p-6 shadow-sm">
+      <dl className="flex flex-wrap gap-x-10 gap-y-4">
+        {stat("Photos stored", String(r.total), mb(r.totalBytes))}
+        {stat("In bookings", String(r.inBookings), "always kept")}
+        {stat("Recent, not booked yet", String(r.recent), `kept for ${PHOTO_KEEP_DAYS} days`)}
+        {stat("Unused", String(r.unused.length), mb(r.unusedBytes))}
+      </dl>
+      <PhotoCleanupButton count={r.unused.length} bytes={r.unusedBytes} />
+    </div>
+  );
+}
+
 async function BookingList() {
   await connection();
   const bookings = await getBookings();
@@ -110,11 +136,7 @@ async function BookingList() {
               <td className="px-3 py-2">
                 {(() => {
                   // Customer photos to print, in page order.
-                  const files = b.order.pages.flatMap((p) =>
-                    p.kind === "preset"
-                      ? Object.entries(p.photos ?? {}).sort(([a], [z]) => Number(a) - Number(z)).map(([, f]) => f.file)
-                      : p.items.flatMap((it) => (it.type === "image" && it.photo ? [it.photo.file] : [])),
-                  );
+                  const files = orderPhotoFiles(b.order);
                   return files.length ? (
                     <span className="flex flex-wrap gap-x-2">
                       {files.map((f, i) => (
@@ -161,6 +183,15 @@ export default function AdminPage() {
           Shown on the Shop &amp; Café page as a &ldquo;View our café menu&rdquo; button. Uploading a new one replaces the old one. PDF, under 4.4 MB.
         </p>
         <Suspense fallback={<p className="mt-4 text-ink-soft">Loading…</p>}><CafeMenuStatus /></Suspense>
+      </section>
+
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-semibold">Customer photos</h2>
+        <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+          Photos customers add to frames are stored even if they never book. Clean-up deletes photos that aren&apos;t in any
+          booking and are older than {PHOTO_KEEP_DAYS} days. Photos in bookings are never deleted.
+        </p>
+        <Suspense fallback={<p className="mt-4 text-ink-soft">Counting photos…</p>}><PhotoCleanup /></Suspense>
       </section>
 
       <section className="mt-14">

@@ -1,5 +1,6 @@
 // Server-only data access: elements, uploads and bookings, stored in Supabase.
-import { ELEMENTS_BUCKET, SITE_FILES_BUCKET, db } from "./supabase";
+import { orderPhotoFiles } from "./orderPhotos";
+import { ELEMENTS_BUCKET, PHOTOS_BUCKET, SITE_FILES_BUCKET, db } from "./supabase";
 import type { CafeMenu, Element, Order, Rect } from "./types";
 
 export type Booking = {
@@ -175,4 +176,86 @@ export async function removeCafeMenu() {
   const { error } = await db().from("site_settings").delete().eq("key", "cafe_menu");
   if (error) throw new Error(`Could not remove the café menu: ${error.message}`);
   if (previous) await db().storage.from(SITE_FILES_BUCKET).remove([previous.file]);
+}
+
+/* ───────── Customer photos: clean-up of photos never used in a booking ───────── */
+
+/** Photos newer than this are kept: their owner may still be choosing pages. */
+export const PHOTO_KEEP_DAYS = 7;
+
+export type PhotoCleanupReport = {
+  total: number; // photos in storage
+  inBookings: number; // used in at least one booking (never deleted)
+  recent: number; // unused but uploaded in the last PHOTO_KEEP_DAYS days (kept for now)
+  unused: { name: string; size: number }[]; // unused and older: safe to delete
+  unusedBytes: number;
+  totalBytes: number;
+};
+
+async function listCustomerPhotos() {
+  const all: { name: string; createdAt: string; size: number }[] = [];
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await db().storage.from(PHOTOS_BUCKET).list("", {
+      limit: 1000, offset, sortBy: { column: "created_at", order: "asc" },
+    });
+    if (error) throw new Error(`Could not list photos: ${error.message}`);
+    for (const f of data) {
+      if (f.created_at && f.metadata) all.push({ name: f.name, createdAt: f.created_at, size: Number(f.metadata.size ?? 0) });
+    }
+    if (data.length < 1000) break;
+  }
+  return all;
+}
+
+/** Every photo file used by any booking. */
+async function photosInBookings(): Promise<Set<string>> {
+  const used = new Set<string>();
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db().from("bookings").select("order").range(from, from + 999);
+    if (error) throw new Error(`Could not load bookings: ${error.message}`);
+    for (const row of data as { order: Order }[]) for (const f of orderPhotoFiles(row.order)) used.add(f);
+    if (data.length < 1000) break;
+  }
+  return used;
+}
+
+export async function getPhotoCleanupReport(): Promise<PhotoCleanupReport> {
+  const [photos, used] = await Promise.all([listCustomerPhotos(), photosInBookings()]);
+  const cutoff = Date.now() - PHOTO_KEEP_DAYS * 24 * 3600 * 1000;
+  const report: PhotoCleanupReport = { total: photos.length, inBookings: 0, recent: 0, unused: [], unusedBytes: 0, totalBytes: 0 };
+  for (const p of photos) {
+    report.totalBytes += p.size;
+    if (used.has(p.name)) report.inBookings++;
+    else if (new Date(p.createdAt).getTime() > cutoff) report.recent++;
+    else {
+      report.unused.push({ name: p.name, size: p.size });
+      report.unusedBytes += p.size;
+    }
+  }
+  return report;
+}
+
+/** Deletes photos that aren't in any booking and are older than PHOTO_KEEP_DAYS. Re-checks everything first. */
+export async function deleteUnusedPhotos(): Promise<{ deleted: number; bytes: number }> {
+  const { unused, unusedBytes } = await getPhotoCleanupReport();
+  for (let i = 0; i < unused.length; i += 100) {
+    const { error } = await db().storage.from(PHOTOS_BUCKET).remove(unused.slice(i, i + 100).map((p) => p.name));
+    if (error) throw new Error(`Could not delete photos: ${error.message}`);
+  }
+  return { deleted: unused.length, bytes: unusedBytes };
+}
+
+/** Which of these photo files no longer exist (e.g. cleaned up before the customer booked). */
+export async function missingPhotos(files: string[]): Promise<string[]> {
+  const checks = await Promise.all(
+    [...new Set(files)].map(async (f) => {
+      const { data, error } = await db().storage.from(PHOTOS_BUCKET).exists(f);
+      if (data) return null;
+      // "Not found" answers mean the photo is gone; anything else is a real failure.
+      const status = (error as { status?: number } | null)?.status;
+      if (error && status !== 400 && status !== 404) throw new Error(`Could not check photos: ${error.message}`);
+      return f;
+    }),
+  );
+  return checks.filter((f): f is string => f !== null);
 }

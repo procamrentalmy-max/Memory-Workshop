@@ -2,7 +2,8 @@
 
 import { ARRIVAL_TIMES, DRINKS, TEMPLATES } from "@/lib/data";
 import { orderTotals } from "@/lib/pricing";
-import { addBooking, getElementsByIds } from "@/lib/store";
+import { orderPhotoFiles } from "@/lib/orderPhotos";
+import { addBooking, getElementsByIds, missingPhotos } from "@/lib/store";
 import { elementBox } from "@/lib/pageSize";
 import { LAYOUT_SLOTS } from "@/components/TemplatePreview";
 import { PHOTO_FILE_RE, type CanvasItem, type Order, type OrderPage, type PhotoFill } from "@/lib/types";
@@ -97,7 +98,12 @@ async function sanitiseOrder(raw: unknown): Promise<Order | string> {
     const n = Math.round(num(q, 0, 20));
     if (n > 0 && DRINKS.some((d) => d.name === name)) drinks[name] = n;
   }
-  return { visit: { date: v.date, time: v.time, people }, pages, drinks };
+  const order: Order = { visit: { date: v.date, time: v.time, people }, pages, drinks };
+  // Every photo must still be stored, so the studio can print it.
+  if ((await missingPhotos(orderPhotoFiles(order))).length) {
+    return "One or more of your photos couldn't be found (photos are kept for a while before booking). Please add them again on the pages step, then book.";
+  }
+  return order;
 }
 
 export async function placeBooking(_prev: CheckoutState, formData: FormData): Promise<CheckoutState> {
