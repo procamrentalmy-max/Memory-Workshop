@@ -4,8 +4,8 @@ import { TemplateCard } from "@/components/TemplateCard";
 import { TemplatePreview } from "@/components/TemplatePreview";
 
 const STEPS = [
-  { n: "01", title: "Book a time", text: "Choose the day and time you'd like to come in." },
-  { n: "02", title: "Choose your pages", text: "Pick from our ready-made pages, or design your own with drag and drop." },
+  { n: "01", title: "Choose your pages", text: "Pick from our ready-made pages, or design your own with drag and drop." },
+  { n: "02", title: "Choose your time", text: "Choose the day and time you'd like to come in." },
   { n: "03", title: "Choose your drink", text: "Pick a coffee or something refreshing, ready for when you arrive." },
   { n: "04", title: "Excited to see you!", text: "Bring your photos and your favourite people. We'll have everything ready." },
 ];
@@ -150,7 +150,7 @@ export default function Home() {
               sections and text boxes for free, and we&apos;ll have it ready for your visit.
             </p>
           </div>
-          <Link href="/book/pages?mode=custom" className="btn btn-ghost">Start designing</Link>
+          <Link href="/book?mode=custom" className="btn btn-ghost">Start designing</Link>
         </div>
       </section>
 

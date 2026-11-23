@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { useOrder } from "./orderStore";
 
 export const STEPS = [
-  { href: "/book", label: "Book a time" },
-  { href: "/book/pages", label: "Choose pages" },
+  { href: "/book", label: "Choose pages" },
+  { href: "/book/time", label: "Choose your time" },
   { href: "/book/drinks", label: "Choose a drink" },
   { href: "/book/checkout", label: "Details & payment" },
 ];
@@ -17,8 +17,8 @@ export function Stepper() {
   const current = Math.max(0, STEPS.findIndex((s) => s.href === pathname));
   // A step is ticked only when it has really been completed.
   const done = [
-    Boolean(order?.visit),
     (order?.pages.length ?? 0) > 0,
+    Boolean(order?.visit),
     current > 2 || Object.keys(order?.drinks ?? {}).length > 0,
     false,
   ];

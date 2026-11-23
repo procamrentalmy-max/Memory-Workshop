@@ -55,7 +55,7 @@ function VisitFormInner({ order }: { order: Order }) {
     if (!date) return setError("Please choose a date.");
     if (!time) return setError("Please choose when you'd like to arrive.");
     setOrder((o) => ({ ...o, visit: { date, time, people } }));
-    router.push("/book/pages");
+    router.push("/book/drinks");
   }
 
   const preview: Order = { ...order, visit: { date, time, people } };
@@ -63,7 +63,7 @@ function VisitFormInner({ order }: { order: Order }) {
   return (
     <form onSubmit={next} className="grid gap-10 lg:grid-cols-[1fr_340px]">
       <div className="min-w-0">
-        <p className="font-hand text-2xl text-accent">step one</p>
+        <p className="font-hand text-2xl text-accent">step two</p>
         <h1 className="font-display text-4xl font-semibold sm:text-5xl">When would you like to come in?</h1>
         <p className="mt-3 max-w-xl text-ink-soft">
           Just pick your arrival time. Most visits take about {SESSION_HOURS} hours, at{" "}
@@ -136,9 +136,9 @@ function VisitFormInner({ order }: { order: Order }) {
 
         {error && <p className="mt-4 text-sm font-semibold text-accent" role="alert">{error}</p>}
 
-        <ActionBar summary={<>Session estimate <strong className="ml-1 font-display text-xl">{formatRM(sessionEstimate(people))}</strong><span className="block text-xs text-paper/70">{people} × {SESSION_HOURS} hr</span></>}>
+        <ActionBar back="/book" summary={<>Session estimate <strong className="ml-1 font-display text-xl">{formatRM(sessionEstimate(people))}</strong><span className="block text-xs text-paper/70">{people} × {SESSION_HOURS} hr</span></>}>
           <button type="submit" className={nextBtn}>
-            Next<span className="hidden sm:inline">: choose pages</span> →
+            Next<span className="hidden sm:inline">: choose a drink</span> →
           </button>
         </ActionBar>
       </div>

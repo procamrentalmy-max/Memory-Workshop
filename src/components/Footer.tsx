@@ -32,7 +32,7 @@ export function Footer() {
             <li><Link className="hover:text-accent" href="/templates">Page templates</Link></li>
             <li><Link className="hover:text-accent" href="/pricing">Pricing</Link></li>
             <li><Link className="hover:text-accent" href="/shop">Shop &amp; café</Link></li>
-            <li><Link className="hover:text-accent" href="/book/pages?mode=custom">Design your own</Link></li>
+            <li><Link className="hover:text-accent" href="/book?mode=custom">Design your own</Link></li>
             <li><Link className="hover:text-accent" href="/book">Book a session</Link></li>
           </ul>
         </div>

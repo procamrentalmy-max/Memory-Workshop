@@ -48,7 +48,7 @@ export function CheckoutForm() {
     return (
       <div className="mx-auto max-w-xl rounded-2xl bg-card p-8 text-center">
         <h1 className="font-display text-2xl font-semibold">First, choose when to come in</h1>
-        <Link href="/book" className="btn btn-primary mt-6">Book a time</Link>
+        <Link href="/book/time" className="btn btn-primary mt-6">Choose your time</Link>
       </div>
     );
   }

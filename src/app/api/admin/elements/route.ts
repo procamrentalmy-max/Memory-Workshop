@@ -51,6 +51,6 @@ export async function POST(request: Request) {
     return Response.json({ error: (e as Error).message }, { status: 500 });
   }
   revalidatePath("/admin");
-  revalidatePath("/book/pages");
+  revalidatePath("/book");
   return Response.json({ ok: true, id });
 }

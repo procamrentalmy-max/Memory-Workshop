@@ -8,8 +8,8 @@ import { customPagePrice, orderTotals } from "@/lib/pricing";
 import { elementSrc, type CanvasItem, type Element, type Order, type TextItem } from "@/lib/types";
 import { CanvasView, ItemContent, boxStyle } from "@/components/CanvasView";
 import { TemplatePreview } from "@/components/TemplatePreview";
-import { ActionBar, nextBtn } from "../ActionBar";
-import { newId, setOrder, useOrder } from "../orderStore";
+import { ActionBar, nextBtn } from "./ActionBar";
+import { newId, setOrder, useOrder } from "./orderStore";
 
 type Mode = "preset" | "custom";
 type Draft = { items: CanvasItem[]; background: string; editingId: string | null };
@@ -49,7 +49,7 @@ function Builder({ order, elements, elementsUnavailable }: { order: Order; eleme
 
   return (
     <div>
-      <p className="font-hand text-2xl text-accent">step two</p>
+      <p className="font-hand text-2xl text-accent">step one</p>
       <h1 className="font-display text-4xl font-semibold sm:text-5xl">Choose your pages</h1>
       <p className="mt-2 max-w-2xl text-ink-soft">
         {mode === "preset"
@@ -67,11 +67,10 @@ function Builder({ order, elements, elementsUnavailable }: { order: Order; eleme
 
       <ActionBar
         sticky={false}
-        back="/book"
-        summary={<>{order.pages.length} page{order.pages.length === 1 ? "" : "s"} · <strong className="font-display text-xl">{formatRM(orderTotals(order).total)}</strong><span className="block text-xs text-paper/70">estimated total</span></>}
+        summary={<>{order.pages.length} page{order.pages.length === 1 ? "" : "s"} · <strong className="font-display text-xl">{formatRM(orderTotals(order).total)}</strong><span className="block text-xs text-paper/70">estimated total so far</span></>}
       >
-        <button type="button" onClick={() => router.push("/book/drinks")} className={nextBtn}>
-          Next<span className="hidden sm:inline">: choose a drink</span> →
+        <button type="button" onClick={() => router.push("/book/time")} className={nextBtn}>
+          Next<span className="hidden sm:inline">: choose your time</span> →
         </button>
       </ActionBar>
     </div>

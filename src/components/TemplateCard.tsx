@@ -17,7 +17,7 @@ export function TemplateCard({ template }: { template: Template }) {
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-display text-base font-semibold leading-tight sm:text-lg">
             {/* the whole card is clickable via this link's ::after */}
-            <Link href={`/book/pages?template=${template.id}`} className="after:absolute after:inset-0 after:content-['']">
+            <Link href={`/book?template=${template.id}`} className="after:absolute after:inset-0 after:content-['']">
               {template.name}
             </Link>
           </h3>

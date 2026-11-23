@@ -44,7 +44,7 @@ export default function DrinksStep() {
         </ul>
 
         <ActionBar
-          back="/book/pages"
+          back="/book/time"
           summary={<>Estimated total <strong className="ml-1 font-display text-xl">{formatRM(orderTotals(order).total)}</strong></>}
         >
           <Link href="/book/checkout" className={nextBtn}>

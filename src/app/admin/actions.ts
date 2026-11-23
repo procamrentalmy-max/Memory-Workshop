@@ -27,12 +27,12 @@ export async function saveElement(formData: FormData) {
 
   await updateElement(id, { name, price: Math.round(price * 100) / 100, widthCm, heightCm });
   revalidatePath("/admin");
-  revalidatePath("/book/pages");
+  revalidatePath("/book");
 }
 
 export async function removeElement(formData: FormData) {
   await requireAdmin();
   await deleteElement(String(formData.get("id")));
   revalidatePath("/admin");
-  revalidatePath("/book/pages");
+  revalidatePath("/book");
 }
