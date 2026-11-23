@@ -3,9 +3,10 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { TEMPLATES, formatRM, to12h } from "@/lib/data";
 import { PAGE, sizeLabel } from "@/lib/pageSize";
-import { getBookings, getElements } from "@/lib/store";
-import { elementSrc } from "@/lib/types";
+import { getBookings, getCafeMenu, getElements } from "@/lib/store";
+import { elementSrc, siteFileSrc } from "@/lib/types";
 import { removeElement, saveElement } from "./actions";
+import { MenuUploader } from "./MenuUploader";
 import { UploadForm } from "./UploadForm";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
@@ -57,6 +58,26 @@ async function ElementList() {
         </li>
       ))}
     </ul>
+  );
+}
+
+async function CafeMenuStatus() {
+  await connection();
+  const menu = await getCafeMenu();
+  return (
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-card p-6 shadow-sm">
+      <p className="text-sm">
+        {menu ? (
+          <>
+            Current menu uploaded {new Date(menu.uploadedAt).toLocaleDateString("en-MY", { day: "numeric", month: "short", year: "numeric" })} ·{" "}
+            <a href={siteFileSrc(menu.file)} target="_blank" rel="noreferrer" className="font-semibold text-accent underline">View PDF</a>
+          </>
+        ) : (
+          <span className="text-ink-soft">No menu uploaded yet. The shop page shows the drinks list until you add one.</span>
+        )}
+      </p>
+      <MenuUploader hasMenu={Boolean(menu)} />
+    </div>
   );
 }
 
@@ -132,6 +153,14 @@ export default function AdminPage() {
       <section className="mt-14">
         <h2 className="font-display text-2xl font-semibold">Elements</h2>
         <Suspense fallback={<p className="mt-6 text-ink-soft">Loading…</p>}><ElementList /></Suspense>
+      </section>
+
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-semibold">Café menu (PDF)</h2>
+        <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+          Shown on the Shop &amp; Café page as a &ldquo;View our café menu&rdquo; button. Uploading a new one replaces the old one. PDF, under 4.4 MB.
+        </p>
+        <Suspense fallback={<p className="mt-4 text-ink-soft">Loading…</p>}><CafeMenuStatus /></Suspense>
       </section>
 
       <section className="mt-14">

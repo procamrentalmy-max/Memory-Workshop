@@ -17,3 +17,5 @@ export function db(): SupabaseClient {
 export const ELEMENTS_BUCKET = "elements";
 /** Private bucket for customers' photos (only the server can read or write it). */
 export const PHOTOS_BUCKET = "customer-photos";
+/** Public bucket for website files such as the café menu PDF (only the server uploads). */
+export const SITE_FILES_BUCKET = "site-files";

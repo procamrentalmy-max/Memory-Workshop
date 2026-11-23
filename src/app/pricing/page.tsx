@@ -28,7 +28,7 @@ export default function PricingPage() {
           <h2 className="font-display text-2xl font-semibold">Studio session</h2>
           <p className="mt-4 font-display text-5xl font-semibold">{formatRM(PRICING.sessionPerPersonPerHour)}</p>
           <p className="text-ink-soft">per person, per hour</p>
-          <p className="mt-4 text-sm">Most visits take about {SESSION_HOURS} hours ({formatRM(sessionEstimate(1))} per person). Tools, table and help from our team included.</p>
+          <p className="mt-4 text-sm">Most visits take about {SESSION_HOURS} hours ({formatRM(sessionEstimate(1))} per person). Tools, table, help from our team and <strong>free stickers &amp; stationery</strong> included.</p>
         </div>
         <div className="relative rounded-2xl bg-card p-8 shadow-sm">
           <span className="washi -top-2 left-8 rotate-3" style={{ ["--tape" as string]: "#e0a93b" }} />
@@ -41,7 +41,7 @@ export default function PricingPage() {
           <span className="washi -top-2 left-8 -rotate-2" style={{ ["--tape" as string]: "#7d9a7e" }} />
           <h2 className="font-display text-2xl font-semibold">Design your own</h2>
           <p className="mt-4 font-display text-5xl font-semibold">Pay per element</p>
-          <p className="mt-4 text-sm">Each sticker or element shows its own price. Coloured sections and text boxes are free.</p>
+          <p className="mt-4 text-sm">Each element shows its own price. Coloured sections and text boxes are free.</p>
         </div>
       </div>
 
@@ -70,7 +70,7 @@ export default function PricingPage() {
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-sm text-ink-soft">Based on a {SESSION_HOURS} hour visit. Drinks and shop items are extra.</p>
+      <p className="mt-3 text-sm text-ink-soft">Based on a {SESSION_HOURS} hour visit. Stickers and stationery are free; drinks, notebooks and albums are extra.</p>
 
       <div className="mt-12 text-center">
         <Link href="/book" className="btn btn-primary">Book a session</Link>

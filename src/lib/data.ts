@@ -134,27 +134,20 @@ export type Product = {
   note?: string;
 };
 
-export const SHOP: { group: string; blurb: string; items: Product[] }[] = [
+/** Free with every session: customers use as much as they like while they create. */
+export const FREE_SUPPLIES: { group: string; items: string[] }[] = [
   {
     group: "Stickers",
-    blurb: "Washi-style, vinyl and holographic sheets to finish your pages.",
-    items: [
-      { name: "Travel sticker sheet", price: 5 },
-      { name: "Holographic stars", price: 6 },
-      { name: "Alphabet letters set", price: 8 },
-      { name: "Washi tape (per roll)", price: 7 },
-    ],
+    items: ["Themed sticker sheets", "Holographic stars", "Alphabet letters", "Washi tape"],
   },
   {
     group: "Stationery",
-    blurb: "Pens, stamps and tools for the finishing touches.",
-    items: [
-      { name: "Gel pen set (6 colours)", price: 15 },
-      { name: "Mini date stamp", price: 12 },
-      { name: "Corner punch", price: 18 },
-      { name: "Glue tape runner", price: 9 },
-    ],
+    items: ["Gel pens in every colour", "Date stamps", "Corner punches", "Glue tape & scissors"],
   },
+];
+
+/** Things to buy at the studio (stickers and stationery are free, see FREE_SUPPLIES). */
+export const SHOP: { group: string; blurb: string; items: Product[] }[] = [
   {
     group: "Notebooks & Scrapbooks",
     blurb: "Take your pages home in something worth keeping.",
@@ -165,16 +158,14 @@ export const SHOP: { group: string; blurb: string; items: Product[] }[] = [
       { name: "Refill page sleeves (10)", price: 15 },
     ],
   },
-  {
-    group: "Drinks",
-    blurb: "Fuel for creativity, made fresh at the studio bar.",
-    items: [
-      { name: "Americano", price: 9 },
-      { name: "Latte", price: 12 },
-      { name: "Iced chocolate", price: 11 },
-      { name: "Sparkling lemonade", price: 8 },
-    ],
-  },
+];
+
+/** Drinks customers can pre-order when booking. The full café menu is a PDF uploaded in /admin. */
+export const DRINKS: Product[] = [
+  { name: "Americano", price: 9 },
+  { name: "Latte", price: 12 },
+  { name: "Iced chocolate", price: 11 },
+  { name: "Sparkling lemonade", price: 8 },
 ];
 
 export const FAQS = [
@@ -188,7 +179,11 @@ export const FAQS = [
   },
   {
     q: "Can I use my own photos?",
-    a: "Yes. Send us your photos after booking and we'll print them sized for your chosen pages, ready for you when you arrive. Bring tickets, souvenirs and other keepsakes too.",
+    a: "Yes. When you choose your pages, tap any photo frame to add a photo from your gallery, then move and zoom it to fit. We'll print them ready for your visit. Bring tickets, souvenirs and other keepsakes too.",
+  },
+  {
+    q: "Do stickers and stationery cost extra?",
+    a: "No. Stickers, washi tape, pens, stamps and all our stationery are free to use during your session, as much as you like.",
   },
   {
     q: "How long should I plan to stay?",
@@ -200,4 +195,3 @@ export const FAQS = [
   },
 ];
 
-export const DRINKS: Product[] = SHOP.find((g) => g.group === "Drinks")!.items;

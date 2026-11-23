@@ -19,6 +19,13 @@ export type Element = {
 export const elementSrc = (file: string) =>
   `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/elements/${encodeURIComponent(file)}`;
 
+/** Public link to a website file such as the café menu PDF. */
+export const siteFileSrc = (file: string) =>
+  `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site-files/${encodeURIComponent(file)}`;
+
+/** The café menu PDF currently shown on the shop page. */
+export type CafeMenu = { file: string; uploadedAt: string };
+
 /**
  * A customer's photo placed in a frame. The photo always covers the frame;
  * `zoom` (1 = just covers) crops in, and `x`/`y` (0–100) choose which part shows.

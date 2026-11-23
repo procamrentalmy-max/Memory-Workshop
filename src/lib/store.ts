@@ -1,6 +1,6 @@
 // Server-only data access: elements, uploads and bookings, stored in Supabase.
-import { ELEMENTS_BUCKET, db } from "./supabase";
-import type { Element, Order, Rect } from "./types";
+import { ELEMENTS_BUCKET, SITE_FILES_BUCKET, db } from "./supabase";
+import type { CafeMenu, Element, Order, Rect } from "./types";
 
 export type Booking = {
   reference: string;
@@ -139,4 +139,40 @@ export async function addBooking(b: Omit<Booking, "reference" | "createdAt">): P
     if (error.code !== "23505") throw new Error(`Could not save booking: ${error.message}`); // 23505 = duplicate reference
   }
   throw new Error("Could not create a booking reference. Please try again.");
+}
+
+/* ───────── Café menu (a PDF uploaded from /admin) ───────── */
+
+export async function getCafeMenu(): Promise<CafeMenu | null> {
+  const { data, error } = await db().from("site_settings").select("value").eq("key", "cafe_menu").maybeSingle();
+  if (error) throw new Error(`Could not load the café menu: ${error.message}`);
+  return (data?.value as CafeMenu | undefined) ?? null;
+}
+
+/** Uploads a new menu PDF, makes it the current menu, and deletes the previous file. */
+export async function setCafeMenu(bytes: ArrayBuffer): Promise<CafeMenu> {
+  const previous = await getCafeMenu();
+  const menu: CafeMenu = { file: `cafe-menu-${crypto.randomUUID()}.pdf`, uploadedAt: new Date().toISOString() };
+  const up = await db().storage.from(SITE_FILES_BUCKET).upload(menu.file, bytes, {
+    contentType: "application/pdf",
+    cacheControl: "31536000",
+    upsert: false,
+  });
+  if (up.error) throw new Error(`Upload failed: ${up.error.message}`);
+  const { error } = await db()
+    .from("site_settings")
+    .upsert({ key: "cafe_menu", value: menu, updated_at: menu.uploadedAt });
+  if (error) {
+    await db().storage.from(SITE_FILES_BUCKET).remove([menu.file]);
+    throw new Error(`Could not save the café menu: ${error.message}`);
+  }
+  if (previous) await db().storage.from(SITE_FILES_BUCKET).remove([previous.file]);
+  return menu;
+}
+
+export async function removeCafeMenu() {
+  const previous = await getCafeMenu();
+  const { error } = await db().from("site_settings").delete().eq("key", "cafe_menu");
+  if (error) throw new Error(`Could not remove the café menu: ${error.message}`);
+  if (previous) await db().storage.from(SITE_FILES_BUCKET).remove([previous.file]);
 }

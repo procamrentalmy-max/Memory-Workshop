@@ -28,6 +28,9 @@ export default function Home() {
       <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-12 sm:px-6 md:grid-cols-2 md:pt-20">
         <div>
           <p className="font-hand text-2xl text-accent">a hands-on memory creation studio</p>
+          <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-sage/20 px-3 py-1 text-sm font-semibold text-[#3f5e41] ring-1 ring-sage/40">
+            <span aria-hidden>✂</span> Free stickers &amp; stationery with every session
+          </p>
           <h1 className="mt-2 font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
             Turn your favourite moments into keepsakes you made yourself.
           </h1>
@@ -47,6 +50,10 @@ export default function Home() {
             <div>
               <dt className="text-sm text-ink-soft">Ready-made pages</dt>
               <dd className="font-display text-2xl font-semibold">{formatRM(PRICING.perPage)}<span className="text-base font-normal text-ink-soft"> or design your own</span></dd>
+            </div>
+            <div>
+              <dt className="text-sm text-ink-soft">Stickers &amp; stationery</dt>
+              <dd className="font-display text-2xl font-semibold text-[#3f5e41]">Free</dd>
             </div>
           </dl>
         </div>
@@ -126,14 +133,17 @@ export default function Home() {
             <p className="font-hand text-2xl text-mustard">while you create…</p>
             <h2 className="mt-1 font-display text-3xl font-semibold">Shop &amp; café</h2>
             <p className="mt-3 text-paper/80">
-              Add the finishing touches with stickers, washi tape and stationery, take your pages home in a
+              Stickers, washi tape and stationery are free to use while you create. Take your pages home in a
               notebook or scrapbook album, and enjoy a fresh coffee while you work.
             </p>
             <Link href="/shop" className="btn mt-6 bg-paper text-ink hover:bg-white">Visit the shop</Link>
           </div>
           <ul className="grid grid-cols-2 gap-3 text-sm">
-            {["Stickers", "Washi tape", "Stationery", "Notebooks", "Scrapbook albums", "Coffee & drinks"].map((x) => (
-              <li key={x} className="rounded-lg border border-paper/20 px-4 py-3">{x}</li>
+            {[["Stickers", true], ["Washi tape", true], ["Stationery", true], ["Notebooks", false], ["Scrapbook albums", false], ["Coffee & drinks", false]].map(([x, free]) => (
+              <li key={String(x)} className={`flex items-center justify-between gap-2 rounded-lg border px-4 py-3 ${free ? "border-mustard/60" : "border-paper/20"}`}>
+                {x}
+                {free && <span className="rounded-full bg-mustard px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink">Free</span>}
+              </li>
             ))}
           </ul>
         </div>
@@ -146,7 +156,7 @@ export default function Home() {
             <span className="rounded-full bg-sage/20 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#3f5e41]">New</span>
             <h2 className="mt-3 font-display text-2xl font-semibold sm:text-3xl">Design your own page</h2>
             <p className="mt-2 max-w-2xl text-ink-soft">
-              Prefer your own layout? Drag and drop stickers and elements onto a blank page, add coloured
+              Prefer your own layout? Drag and drop elements and photo frames onto a blank page, add coloured
               sections and text boxes for free, and we&apos;ll have it ready for your visit.
             </p>
           </div>

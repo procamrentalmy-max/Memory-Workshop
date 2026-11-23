@@ -40,6 +40,10 @@ export function OrderSummary({ order, children }: { order: Order; children?: Rea
             ))}
           </ul>
         </div>
+        <div className="flex justify-between gap-4">
+          <dt className="text-ink-soft">Stickers &amp; stationery</dt>
+          <dd className="font-semibold text-[#3f5e41]">Free</dd>
+        </div>
         {drinkLines.length > 0 && (
           <div>
             <div className="flex justify-between gap-4">
