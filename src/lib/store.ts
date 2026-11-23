@@ -1,6 +1,6 @@
 // Server-only data access: elements, uploads and bookings, stored in Supabase.
 import { ELEMENTS_BUCKET, db } from "./supabase";
-import type { Element, Order } from "./types";
+import type { Element, Order, Rect } from "./types";
 
 export type Booking = {
   reference: string;
@@ -16,9 +16,9 @@ export type Booking = {
 
 type ElementRow = {
   id: string; name: string; price: string | number; file: string; width: number; height: number;
-  width_cm: string | number; height_cm: string | number; created_at: string;
+  width_cm: string | number; height_cm: string | number; photo_window: Rect | null; created_at: string;
 };
-const ELEMENT_COLUMNS = "id,name,price,file,width,height,width_cm,height_cm,created_at";
+const ELEMENT_COLUMNS = "id,name,price,file,width,height,width_cm,height_cm,photo_window,created_at";
 const toElement = (r: ElementRow): Element => ({
   id: r.id,
   name: r.name,
@@ -28,6 +28,7 @@ const toElement = (r: ElementRow): Element => ({
   height: r.height,
   widthCm: Number(r.width_cm),
   heightCm: Number(r.height_cm),
+  photoWindow: r.photo_window ?? null,
   createdAt: r.created_at,
 });
 
@@ -43,7 +44,10 @@ export async function getElements(): Promise<Element[]> {
 
 /** Uploads the image to storage, then records the element. */
 export async function addElement(
-  el: { name: string; price: number; width: number; height: number; widthCm: number; heightCm: number; ext: string; contentType: string },
+  el: {
+    name: string; price: number; width: number; height: number; widthCm: number; heightCm: number;
+    photoWindow: Rect | null; ext: string; contentType: string;
+  },
   bytes: ArrayBuffer,
 ) {
   const id = crypto.randomUUID();
@@ -56,7 +60,7 @@ export async function addElement(
   if (up.error) throw new Error(`Upload failed: ${up.error.message}`);
   const { error } = await db()
     .from("elements")
-    .insert({ id, name: el.name, price: el.price, file, width: el.width, height: el.height, width_cm: el.widthCm, height_cm: el.heightCm });
+    .insert({ id, name: el.name, price: el.price, file, width: el.width, height: el.height, width_cm: el.widthCm, height_cm: el.heightCm, photo_window: el.photoWindow });
   if (error) {
     await db().storage.from(ELEMENTS_BUCKET).remove([file]);
     throw new Error(`Could not save element: ${error.message}`);

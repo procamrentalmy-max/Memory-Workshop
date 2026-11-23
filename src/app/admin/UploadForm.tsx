@@ -3,6 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { A4_ASPECT, PAGE, elementBox, fitsOnPage, heightForWidth, printDpi, sizeLabel } from "@/lib/pageSize";
+import type { Rect } from "@/lib/types";
+import { FrameWindowPicker } from "./FrameWindowPicker";
+
+const MAX_BYTES = 4.4 * 1024 * 1024; // the live site (Vercel) refuses uploads above 4.5 MB
+const DEFAULT_WINDOW: Rect = { x: 10, y: 10, w: 80, h: 80 };
 
 function readSize(file: File): Promise<{ width: number; height: number }> {
   return new Promise((resolve, reject) => {
@@ -27,13 +32,20 @@ export function UploadForm() {
   const [heightCm, setHeightCm] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [isFrame, setIsFrame] = useState(false);
+  const [photoWindow, setPhotoWindow] = useState<Rect>(DEFAULT_WINDOW);
 
   async function onFile(file: File | undefined) {
     setError("");
     if (preview) URL.revokeObjectURL(preview.url);
     setWidthCm("");
     setHeightCm("");
+    setPhotoWindow(DEFAULT_WINDOW);
     if (!file) return setPreview(null);
+    if (file.size > MAX_BYTES) {
+      setPreview(null);
+      return setError("That image is over 4.4 MB. Please use a smaller file (a PNG or JPG under 4 MB).");
+    }
     try {
       const size = await readSize(file);
       setPreview({ url: URL.createObjectURL(file), ...size });
@@ -72,6 +84,7 @@ export function UploadForm() {
     data.set("width", String(preview.width));
     data.set("height", String(preview.height));
     data.set("widthCm", String(w));
+    if (isFrame) data.set("photoWindow", JSON.stringify(photoWindow));
     const res = await fetch("/api/admin/elements", { method: "POST", body: data });
     setBusy(false);
     if (!res.ok) {
@@ -83,6 +96,7 @@ export function UploadForm() {
     setPreview(null);
     setWidthCm("");
     setHeightCm("");
+    setIsFrame(false);
     router.refresh();
   }
 
@@ -135,6 +149,22 @@ export function UploadForm() {
             <p className="mt-1 text-xs font-semibold text-[#7a5a12]">
               This image is only {dpi} dpi at that size, so it may look blurry when printed. A larger image file would print sharper.
             </p>
+          )}
+        </fieldset>
+
+        <fieldset disabled={!preview} className="rounded-xl border border-line p-3">
+          <label className="flex items-start gap-2 text-sm font-semibold">
+            <input type="checkbox" checked={isFrame} onChange={(e) => setIsFrame(e.target.checked)} className="mt-0.5 accent-[var(--accent)]" />
+            <span>
+              This is a photo frame
+              <span className="block text-xs font-normal text-ink-soft">Customers can put their own photo in it, then move and zoom it.</span>
+            </span>
+          </label>
+          {isFrame && preview && (
+            <div className="mt-3">
+              <p className="mb-2 text-xs text-ink-soft">Drag on the image to mark where the customer&apos;s photo goes (the shaded box).</p>
+              <FrameWindowPicker src={preview.url} value={photoWindow} onChange={setPhotoWindow} />
+            </div>
           )}
         </fieldset>
 

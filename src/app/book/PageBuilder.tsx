@@ -5,14 +5,17 @@ import { useEffect, useRef, useState } from "react";
 import { CATEGORIES, PRICING, TEMPLATES, formatRM } from "@/lib/data";
 import { PAGE, elementBox, sizeLabel } from "@/lib/pageSize";
 import { customPagePrice, orderTotals } from "@/lib/pricing";
-import { elementSrc, type CanvasItem, type Element, type Order, type TextItem } from "@/lib/types";
+import { elementSrc, type CanvasItem, type Element, type ImageItem, type Order, type OrderPage, type PhotoFill, type TextItem } from "@/lib/types";
 import { CanvasView, ItemContent, boxStyle } from "@/components/CanvasView";
-import { TemplatePreview } from "@/components/TemplatePreview";
+import { LAYOUT_SLOTS, TemplatePreview } from "@/components/TemplatePreview";
 import { ActionBar, nextBtn } from "./ActionBar";
+import { PhotoEditor } from "./PhotoEditor";
 import { newId, setOrder, useOrder } from "./orderStore";
 
 type Mode = "preset" | "custom";
 type Draft = { items: CanvasItem[]; background: string; editingId: string | null };
+/** A preset page from the order being re-opened to change its photos. */
+type PresetEdit = { pageId: string; templateId: string; photos: Record<string, PhotoFill> };
 
 const SWATCHES = ["#ffffff", "#faf6ef", "#f2ebdf", "#fbe4e4", "#e0fbfc", "#eef4e6", "#fff3b0", "#b8492f", "#e0a93b", "#7d9a7e", "#33658a", "#2a2420"];
 const EMPTY_DRAFT: Draft = { items: [], background: "#ffffff", editingId: null };
@@ -35,6 +38,8 @@ function Builder({ order, elements, elementsUnavailable }: { order: Order; eleme
   const params = useSearchParams();
   const fromLink = params.get("template");
   const [mode, setMode] = useState<Mode>(params.get("mode") === "custom" ? "custom" : "preset");
+  const [presetEdit, setPresetEdit] = useState<PresetEdit | null>(null);
+  const [lastTemplate, setLastTemplate] = useState<string | null>(null);
 
   const toggle = (
     <div role="tablist" aria-label="How to choose pages" className="flex rounded-full border border-line bg-card p-1 shadow-sm">
@@ -59,11 +64,20 @@ function Builder({ order, elements, elementsUnavailable }: { order: Order; eleme
 
       <div className="mt-6">
         {mode === "preset"
-          ? <PresetMode order={order} initial={fromLink} toggle={toggle} />
+          ? <PresetMode key={presetEdit?.pageId ?? "new"} order={order} initial={lastTemplate ?? fromLink} toggle={toggle}
+              edit={presetEdit} onEditDone={(templateId) => { setLastTemplate(templateId); setPresetEdit(null); }} />
           : <CustomMode elements={elements} unavailable={elementsUnavailable} toggle={toggle} />}
       </div>
 
-      <YourPages order={order} onEdit={() => setMode("custom")} />
+      <YourPages
+        order={order}
+        onEdit={() => setMode("custom")}
+        onEditPreset={(p) => {
+          setPresetEdit({ pageId: p.id, templateId: p.templateId, photos: p.photos ?? {} });
+          setMode("preset");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
 
       <ActionBar
         sticky={false}
@@ -99,15 +113,51 @@ function Workspace({ toggle, page, panel, pageRef }: {
 
 /* ───────────────────────── Preset mode ───────────────────────── */
 
-function PresetMode({ order, initial, toggle }: { order: Order; initial: string | null; toggle: React.ReactNode }) {
-  const [selectedId, setSelectedId] = useState(initial && TEMPLATES.some((t) => t.id === initial) ? initial : TEMPLATES[0].id);
+function PresetMode({ order, initial, toggle, edit, onEditDone }: {
+  order: Order; initial: string | null; toggle: React.ReactNode;
+  edit: PresetEdit | null; onEditDone: (templateId: string) => void;
+}) {
+  const [selectedId, setSelectedId] = useState(
+    edit?.templateId ?? (initial && TEMPLATES.some((t) => t.id === initial) ? initial : TEMPLATES[0].id),
+  );
   const [category, setCategory] = useState("All");
+  // Photos the customer has put in each template's frames, kept until the page is added.
+  const [drafts, setDrafts] = useState<Record<string, Record<string, PhotoFill>>>(edit ? { [edit.templateId]: edit.photos } : {});
+  const [frame, setFrame] = useState<{ slot: number; aspect: number } | null>(null);
   const selected = TEMPLATES.find((t) => t.id === selectedId)!;
   const count = (id: string) => order.pages.filter((p) => p.kind === "preset" && p.templateId === id).length;
   const list = TEMPLATES.filter((t) => category === "All" || t.category === category);
   const pageRef = useRef<HTMLElement>(null);
+  const editing = edit && edit.templateId === selectedId ? edit : null;
+  const photos = drafts[selectedId] ?? {};
+  const slots = LAYOUT_SLOTS[selected.layout];
+  const filled = Object.keys(photos).length;
 
-  const add = () => setOrder((o) => ({ ...o, pages: [...o.pages, { kind: "preset", id: newId(), templateId: selectedId }] }));
+  const add = () => {
+    const page: OrderPage = { kind: "preset", id: editing?.pageId ?? newId(), templateId: selectedId, ...(filled ? { photos } : {}) };
+    setOrder((o) => ({
+      ...o,
+      pages: editing && o.pages.some((p) => p.id === editing.pageId)
+        ? o.pages.map((p) => (p.id === editing.pageId ? page : p))
+        : [...o.pages, page],
+    }));
+    setDrafts((d) => {
+      const next = { ...d };
+      delete next[selectedId];
+      return next;
+    });
+    if (editing) onEditDone(selectedId);
+  };
+  const savePhoto = (fill: PhotoFill | null) => {
+    const key = String(frame!.slot);
+    setDrafts((d) => {
+      const cur = { ...(d[selectedId] ?? {}) };
+      if (fill) cur[key] = fill;
+      else delete cur[key];
+      return { ...d, [selectedId]: cur };
+    });
+    setFrame(null);
+  };
   const select = (id: string) => {
     setSelectedId(id);
     // On phones the preview sits above the list: bring it into view.
@@ -121,9 +171,19 @@ function PresetMode({ order, initial, toggle }: { order: Order; initial: string 
       page={
         <>
           <div className={PAGE_FRAME}>
-            <TemplatePreview template={selected} className="!rounded-none" />
+            <TemplatePreview
+              template={selected}
+              className="!rounded-none"
+              photos={photos}
+              onSlotClick={(slot, el) => setFrame({ slot, aspect: el.offsetWidth / el.offsetHeight })}
+            />
           </div>
-          <div className="mx-auto mt-5 flex max-w-[440px] flex-wrap items-end justify-between gap-4">
+          {slots > 0 && (
+            <p className="mx-auto mt-3 max-w-[440px] text-center text-sm text-ink-soft">
+              Tap a photo frame to add your photo · <strong className="text-ink">{filled} of {slots}</strong> added
+            </p>
+          )}
+          <div className="mx-auto mt-4 flex max-w-[440px] flex-wrap items-end justify-between gap-4">
             <div className="min-w-0">
               <h2 className="font-display text-2xl font-semibold leading-tight">{selected.name}</h2>
               <p className="mt-1 text-sm text-ink-soft">
@@ -134,11 +194,26 @@ function PresetMode({ order, initial, toggle }: { order: Order; initial: string 
             <div className="flex items-center gap-3">
               <span className="font-display text-2xl font-semibold">{formatRM(PRICING.perPage)}</span>
               <button type="button" onClick={add} className="btn btn-primary">
-                {count(selectedId) ? "Add another" : "Add this page"}
+                {editing ? "Save changes" : count(selectedId) ? "Add another" : "Add this page"}
               </button>
             </div>
-            {count(selectedId) > 0 && <p className="w-full text-right text-sm text-[#3f5e41]">✓ {count(selectedId)} in your order</p>}
+            {editing ? (
+              <button type="button" onClick={() => onEditDone(selectedId)} className="w-full text-right text-sm text-ink-soft hover:text-accent">
+                Cancel changes
+              </button>
+            ) : (
+              count(selectedId) > 0 && <p className="w-full text-right text-sm text-[#3f5e41]">✓ {count(selectedId)} in your order</p>
+            )}
           </div>
+          {frame && (
+            <PhotoEditor
+              aspect={frame.aspect}
+              fill={photos[String(frame.slot)]}
+              label={`Photo ${frame.slot + 1}`}
+              onClose={() => setFrame(null)}
+              onSave={savePhoto}
+            />
+          )}
         </>
       }
       panel={
@@ -189,6 +264,7 @@ function imageItem(el: Element, cx = 50, cy = 45): CanvasItem {
   return {
     id: newId(), type: "image", elementId: el.id, file: el.file, name: el.name, price: el.price, aspect: el.height / el.width,
     w, h, x: clamp(cx - w / 2, 0, Math.max(0, 100 - w)), y: clamp(cy - h / 2, 0, Math.max(0, 100 - h)),
+    ...(el.photoWindow ? { window: el.photoWindow } : {}),
   };
 }
 
@@ -204,7 +280,11 @@ function CustomMode({ elements, unavailable, toggle }: { elements: Element[]; un
   const [draft, setDraftState] = useState<Draft>(loadDraft);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ id: string; mode: "move" | "resize"; sx: number; sy: number; box: CanvasItem; rect: DOMRect } | null>(null);
+  const drag = useRef<{
+    id: string; mode: "move" | "resize"; sx: number; sy: number; box: CanvasItem; rect: DOMRect;
+    moved: boolean; photoTap: boolean;
+  } | null>(null);
+  const [photoFor, setPhotoFor] = useState<string | null>(null); // frame item whose photo is being edited
 
   // Undo history: snapshots of the page before each change (similar quick edits are merged).
   const draftRef = useRef(draft);
@@ -310,14 +390,19 @@ function CustomMode({ elements, unavailable, toggle }: { elements: Element[]; un
   const startDrag = (e: React.PointerEvent, it: CanvasItem, mode: "move" | "resize") => {
     e.stopPropagation();
     e.preventDefault();
+    // A tap (no drag) on the photo window of an already-selected frame opens the photo editor.
+    const photoTap = mode === "move" && it.id === selectedId && it.type === "image" && Boolean(it.window)
+      && Boolean((e.target as HTMLElement).closest("[data-photo-window]"));
     setSelectedId(it.id);
     snapshot();
-    drag.current = { id: it.id, mode, sx: e.clientX, sy: e.clientY, box: it, rect: canvasRef.current!.getBoundingClientRect() };
+    drag.current = { id: it.id, mode, sx: e.clientX, sy: e.clientY, box: it, rect: canvasRef.current!.getBoundingClientRect(), moved: false, photoTap };
     canvasRef.current!.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const d = drag.current;
     if (!d) return;
+    if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 4) return; // ignore tiny wobbles on a tap
+    d.moved = true;
     const dx = ((e.clientX - d.sx) / d.rect.width) * 100;
     const dy = ((e.clientY - d.sy) / d.rect.height) * 100;
     const b = d.box;
@@ -329,7 +414,15 @@ function CustomMode({ elements, unavailable, toggle }: { elements: Element[]; un
       patch(d.id, { w: clamp(b.w + dx, 4, 100 - b.x), h: clamp(b.h + dy, 3, 100 - b.y) });
     }
   };
-  const endDrag = () => { drag.current = null; };
+  const endDrag = () => {
+    const d = drag.current;
+    drag.current = null;
+    if (d && !d.moved && d.photoTap) setPhotoFor(d.id);
+  };
+  const photoItem = items.find((i): i is ImageItem => i.id === photoFor && i.type === "image" && Boolean(i.window));
+  /** Width ÷ height of a frame's photo window on the A4 page. */
+  const windowAspect = (it: ImageItem) =>
+    ((it.window!.w / 100) * (it.w / 100) * PAGE.widthCm) / ((it.window!.h / 100) * (it.h / 100) * PAGE.heightCm);
 
   /* Dropping from the editor panel (desktop drag & drop). */
   const onDrop = (e: React.DragEvent) => {
@@ -394,7 +487,7 @@ function CustomMode({ elements, unavailable, toggle }: { elements: Element[]; un
               onPointerDown={(e) => startDrag(e, it, "move")}
               className={`cursor-move touch-none ${isSel ? "outline-2 outline-offset-1 outline-accent outline-dashed" : "hover:outline-1 hover:outline-dashed hover:outline-ink/40"}`}
             >
-              <ItemContent item={it} />
+              <ItemContent item={it} editing />
               {isSel && it.type !== "image" && (
                 <span
                   onPointerDown={(e) => startDrag(e, it, "resize")}
@@ -434,6 +527,17 @@ function CustomMode({ elements, unavailable, toggle }: { elements: Element[]; un
             <p className="mt-1 text-xs text-ink-soft">
               Fixed size: {sizeLabel((selected.w * PAGE.widthCm) / 100, (selected.h * PAGE.heightCm) / 100)}. Drag it to position it on the page.
             </p>
+          )}
+          {selected.type === "image" && selected.window && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold">
+              <button type="button" onClick={() => setPhotoFor(selected.id)} className="btn btn-primary !px-3 !py-1.5 text-xs">
+                {selected.photo ? "Change / move photo" : "＋ Add photo"}
+              </button>
+              {selected.photo && (
+                <button type="button" onClick={() => edit(selected.id, { photo: undefined })} className="rounded-md border border-accent/40 bg-white px-2 py-1 text-accent">Remove photo</button>
+              )}
+              <span className="w-full font-normal text-ink-soft">Tip: tap the frame&apos;s photo area to add or change the photo.</span>
+            </div>
           )}
           {selected.type === "section" && (
             <ColourPicker value={selected.color} onChange={(c) => edit(selected.id, { color: c })} />
@@ -511,7 +615,23 @@ function CustomMode({ elements, unavailable, toggle }: { elements: Element[]; un
     </div>
   );
 
-  return <Workspace toggle={toggle} page={page} panel={panel} />;
+  return (
+    <>
+      <Workspace toggle={toggle} page={page} panel={panel} />
+      {photoItem && (
+        <PhotoEditor
+          aspect={windowAspect(photoItem)}
+          fill={photoItem.photo}
+          label={`Photo for ${photoItem.name}`}
+          onClose={() => setPhotoFor(null)}
+          onSave={(fill) => {
+            edit(photoItem.id, { photo: fill ?? undefined });
+            setPhotoFor(null);
+          }}
+        />
+      )}
+    </>
+  );
 }
 
 function ColourPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
@@ -552,7 +672,9 @@ function TextControls({ item, onChange }: { item: TextItem; onChange: (p: Partia
 
 /* ───────────────────────── Pages in the order ───────────────────────── */
 
-function YourPages({ order, onEdit }: { order: Order; onEdit: () => void }) {
+function YourPages({ order, onEdit, onEditPreset }: {
+  order: Order; onEdit: () => void; onEditPreset: (p: Extract<OrderPage, { kind: "preset" }>) => void;
+}) {
   if (order.pages.length === 0) return null;
   const remove = (id: string) => setOrder((o) => ({ ...o, pages: o.pages.filter((p) => p.id !== id) }));
   const edit = (id: string) => {
@@ -574,11 +696,17 @@ function YourPages({ order, onEdit }: { order: Order; onEdit: () => void }) {
           const tpl = p.kind === "preset" ? TEMPLATES.find((t) => t.id === p.templateId) : null;
           return (
             <li key={p.id} className="w-36 shrink-0 rounded-xl border border-line bg-card p-2">
-              {p.kind === "preset" && tpl ? <TemplatePreview template={tpl} /> : p.kind === "custom" ? <CanvasView items={p.items} background={p.background} /> : null}
+              {p.kind === "preset" && tpl ? <TemplatePreview template={tpl} photos={p.photos} /> : p.kind === "custom" ? <CanvasView items={p.items} background={p.background} /> : null}
               <p className="mt-2 truncate text-sm font-semibold">{tpl ? tpl.name : "Your design"}</p>
-              <p className="text-xs text-ink-soft">{formatRM(p.kind === "preset" ? PRICING.perPage : customPagePrice(p.items))}</p>
+              <p className="text-xs text-ink-soft">
+                {formatRM(p.kind === "preset" ? PRICING.perPage : customPagePrice(p.items))}
+                {p.kind === "preset" && tpl && LAYOUT_SLOTS[tpl.layout] > 0 && ` · ${Object.keys(p.photos ?? {}).length}/${LAYOUT_SLOTS[tpl.layout]} photos`}
+              </p>
               <div className="mt-1 flex gap-3 text-xs font-semibold">
                 {p.kind === "custom" && <button type="button" onClick={() => edit(p.id)} className="text-ink hover:underline">Edit</button>}
+                {p.kind === "preset" && tpl && LAYOUT_SLOTS[tpl.layout] > 0 && (
+                  <button type="button" onClick={() => onEditPreset(p)} className="text-ink hover:underline">Photos</button>
+                )}
                 <button type="button" onClick={() => remove(p.id)} className="text-accent hover:underline">Remove</button>
               </div>
             </li>

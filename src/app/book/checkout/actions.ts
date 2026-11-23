@@ -4,7 +4,8 @@ import { ARRIVAL_TIMES, DRINKS, TEMPLATES } from "@/lib/data";
 import { orderTotals } from "@/lib/pricing";
 import { addBooking, getElementsByIds } from "@/lib/store";
 import { elementBox } from "@/lib/pageSize";
-import { type CanvasItem, type Order, type OrderPage } from "@/lib/types";
+import { LAYOUT_SLOTS } from "@/components/TemplatePreview";
+import { PHOTO_FILE_RE, type CanvasItem, type Order, type OrderPage, type PhotoFill } from "@/lib/types";
 
 export type CheckoutState =
   | { status: "idle" }
@@ -14,6 +15,16 @@ export type CheckoutState =
 const PAYMENT_METHODS = { studio: "Pay at the studio" } as const;
 
 const num = (v: unknown, lo: number, hi: number) => (typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : lo);
+/** A customer photo placed in a frame, or null if it isn't valid. */
+function cleanFill(raw: unknown): PhotoFill | null {
+  const f = raw as Partial<PhotoFill> | null;
+  if (!f || typeof f.file !== "string" || !PHOTO_FILE_RE.test(f.file)) return null;
+  const w = Math.round(num(f.w, 0, 6000));
+  const h = Math.round(num(f.h, 0, 6000));
+  if (!w || !h) return null;
+  return { file: f.file, w, h, zoom: num(f.zoom, 1, 4), x: num(f.x, 0, 100), y: num(f.y, 0, 100) };
+}
+
 const color = (v: unknown) => (typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v) ? v : "#ffffff");
 
 function klNow() {
@@ -41,7 +52,17 @@ async function sanitiseOrder(raw: unknown): Promise<Order | string> {
   for (const p of Array.isArray(o.pages) ? o.pages.slice(0, 100) : []) {
     const id = String(p?.id ?? "").slice(0, 20);
     if (p?.kind === "preset") {
-      if (TEMPLATES.some((t) => t.id === p.templateId)) pages.push({ kind: "preset", id, templateId: p.templateId });
+      const tpl = TEMPLATES.find((t) => t.id === p.templateId);
+      if (tpl) {
+        // Keep only photos for frames this page really has.
+        const photos: Record<string, PhotoFill> = {};
+        for (const [slot, raw] of Object.entries(p.photos ?? {})) {
+          const n = Number(slot);
+          const fill = cleanFill(raw);
+          if (Number.isInteger(n) && n >= 0 && n < LAYOUT_SLOTS[tpl.layout] && fill) photos[String(n)] = fill;
+        }
+        pages.push({ kind: "preset", id, templateId: tpl.id, ...(Object.keys(photos).length ? { photos } : {}) });
+      }
     } else if (p?.kind === "custom" && Array.isArray(p.items)) {
       const items: CanvasItem[] = [];
       for (const it of p.items.slice(0, 200)) {
@@ -53,7 +74,13 @@ async function sanitiseOrder(raw: unknown): Promise<Order | string> {
           const { w, h } = elementBox(el.widthCm, el.heightCm);
           const x = Math.min(Math.max(box.x, 0), Math.max(0, 100 - w));
           const y = Math.min(Math.max(box.y, 0), Math.max(0, 100 - h));
-          items.push({ id: box.id, x, y, w, h, type: "image", elementId: el.id, file: el.file, name: el.name, price: el.price, aspect: el.height / el.width });
+          // Photo frames: the photo window comes from the element itself; the photo only from a valid upload.
+          const photo = el.photoWindow ? cleanFill((it as { photo?: unknown }).photo) : null;
+          items.push({
+            id: box.id, x, y, w, h, type: "image", elementId: el.id, file: el.file, name: el.name, price: el.price, aspect: el.height / el.width,
+            ...(el.photoWindow ? { window: el.photoWindow } : {}),
+            ...(photo ? { photo } : {}),
+          });
         } else if (it.type === "section") {
           items.push({ ...box, type: "section", color: color(it.color) });
         } else if (it.type === "text") {

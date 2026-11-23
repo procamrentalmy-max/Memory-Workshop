@@ -21,9 +21,16 @@ async function ElementList() {
       {elements.map((el) => (
         <li key={el.id} className="rounded-xl border border-line bg-card p-4">
           <div className="grid h-36 place-items-center rounded-lg bg-[repeating-conic-gradient(#f2ebdf_0_25%,#fff_0_50%)] bg-[length:16px_16px] p-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={elementSrc(el.file)} alt={el.name} className="max-h-32 w-auto object-contain" />
+            <div className="relative inline-block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={elementSrc(el.file)} alt={el.name} className="block max-h-32 w-auto object-contain" />
+              {el.photoWindow && (
+                <span className="absolute border-2 border-dashed border-accent bg-accent/20"
+                  style={{ left: `${el.photoWindow.x}%`, top: `${el.photoWindow.y}%`, width: `${el.photoWindow.w}%`, height: `${el.photoWindow.h}%` }} />
+              )}
+            </div>
           </div>
+          {el.photoWindow && <p className="mt-2 inline-block rounded-full bg-accent/10 px-2 py-0.5 text-xs font-bold text-accent">Photo frame</p>}
           <p className="mt-2 text-xs text-ink-soft">
             Prints at <strong className="text-ink">{sizeLabel(el.widthCm, el.heightCm)}</strong> · image {el.width} × {el.height} px
           </p>
@@ -59,10 +66,10 @@ async function BookingList() {
   if (bookings.length === 0) return <p className="mt-6 text-ink-soft">No bookings yet.</p>;
   return (
     <div className="mt-6 overflow-x-auto rounded-xl border border-line bg-card">
-      <table className="w-full min-w-[760px] text-left text-sm">
+      <table className="w-full min-w-[860px] text-left text-sm">
         <thead className="bg-paper-2 text-ink-soft">
           <tr>
-            {["Ref", "Arrival", "Guests", "Name & contact", "Pages", "Drinks", "Payment", "Total"].map((h) => (
+            {["Ref", "Arrival", "Guests", "Name & contact", "Pages", "Photos", "Drinks", "Payment", "Total"].map((h) => (
               <th key={h} className="px-3 py-2 font-semibold">{h}</th>
             ))}
           </tr>
@@ -78,6 +85,23 @@ async function BookingList() {
                 {b.order.pages.map((p) =>
                   p.kind === "preset" ? TEMPLATES.find((t) => t.id === p.templateId)?.name : `Custom design (${p.items.length} items)`,
                 ).join(", ") || "—"}
+              </td>
+              <td className="px-3 py-2">
+                {(() => {
+                  // Customer photos to print, in page order.
+                  const files = b.order.pages.flatMap((p) =>
+                    p.kind === "preset"
+                      ? Object.entries(p.photos ?? {}).sort(([a], [z]) => Number(a) - Number(z)).map(([, f]) => f.file)
+                      : p.items.flatMap((it) => (it.type === "image" && it.photo ? [it.photo.file] : [])),
+                  );
+                  return files.length ? (
+                    <span className="flex flex-wrap gap-x-2">
+                      {files.map((f, i) => (
+                        <a key={f} href={`/api/photos/${f}`} target="_blank" rel="noreferrer" className="text-accent underline">Photo {i + 1}</a>
+                      ))}
+                    </span>
+                  ) : "—";
+                })()}
               </td>
               <td className="px-3 py-2">{Object.entries(b.order.drinks).map(([n, q]) => `${q}× ${n}`).join(", ") || "—"}</td>
               <td className="px-3 py-2">{b.payment}</td>
