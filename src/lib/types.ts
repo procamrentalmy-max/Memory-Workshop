@@ -1,4 +1,5 @@
 import type { Collage } from "./collage";
+import type { ShapeSheet } from "./shapes";
 
 /** A rectangle as % of its container: { x, y, w, h }. */
 export type Rect = { x: number; y: number; w: number; h: number };
@@ -55,7 +56,8 @@ export type CanvasItem = ImageItem | SectionItem | TextItem;
 export type OrderPage =
   | { kind: "preset"; id: string; templateId: string; photos?: Record<string, PhotoFill> } // photos keyed by frame number
   | { kind: "custom"; id: string; items: CanvasItem[]; background: string }
-  | { kind: "collage"; id: string; collage: Collage }; // an A4 photo collage (see lib/collage.ts)
+  | { kind: "collage"; id: string; collage: Collage } // an A4 sheet split into photo sections (see lib/collage.ts)
+  | { kind: "shapes"; id: string; sheet: ShapeSheet }; // photos in shapes drawn on a blank A4 (see lib/shapes.ts)
 
 export type Order = {
   visit: { date: string; time: string; people: number } | null;

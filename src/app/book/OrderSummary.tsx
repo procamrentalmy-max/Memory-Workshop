@@ -1,7 +1,7 @@
 "use client";
 
 import { DRINKS, PRICING, SESSION_HOURS, TEMPLATES, formatRM, to12h } from "@/lib/data";
-import { customPagePrice, orderTotals, pagePrice } from "@/lib/pricing";
+import { customPagePrice, orderTotals, pagePrice, photoCount } from "@/lib/pricing";
 import type { Order } from "@/lib/types";
 
 export function OrderSummary({ order, children }: { order: Order; children?: React.ReactNode }) {
@@ -35,8 +35,8 @@ export function OrderSummary({ order, children }: { order: Order; children?: Rea
               <li key={p.id}>
                 {p.kind === "preset"
                   ? `${TEMPLATES.find((x) => x.id === p.templateId)?.name} · ${formatRM(PRICING.perPage)}`
-                  : p.kind === "collage"
-                    ? `Photo collage · ${formatRM(pagePrice(p))}`
+                  : p.kind === "collage" || p.kind === "shapes"
+                    ? `${p.kind === "collage" ? "Photo collage" : "Photo shapes"} · ${photoCount(p)} photo${photoCount(p) === 1 ? "" : "s"} · ${formatRM(pagePrice(p))}`
                     : `Your own design · ${formatRM(customPagePrice(p.items))}`}
               </li>
             ))}

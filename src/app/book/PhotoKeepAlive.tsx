@@ -3,12 +3,13 @@
 import { useEffect } from "react";
 import { collagePhotos, type CollageNode } from "@/lib/collage";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
+import type { PhotoShape } from "@/lib/shapes";
 import { useOrder } from "./orderStore";
 
 const DRAFT_KEY = "pm-draft-v1";
 const THROTTLE_MS = 60 * 60 * 1000; // tell the server at most once an hour for the same photos
 
-/** Photos on unsaved work kept in this browser: the drag & drop page and the photo collage. */
+/** Photos on unsaved work kept in this browser: the drag & drop page, the photo collage and photo shapes. */
 function draftPhotoFiles(): string[] {
   const files: string[] = [];
   try {
@@ -18,6 +19,10 @@ function draftPhotoFiles(): string[] {
   try {
     const collage = JSON.parse(window.localStorage.getItem("pm-collage-v1") ?? "null") as { root?: CollageNode } | null;
     if (collage?.root) files.push(...collagePhotos(collage.root).map((f) => f.file));
+  } catch { /* ignore */ }
+  try {
+    const sheet = JSON.parse(window.localStorage.getItem("pm-shapes-v1") ?? "null") as { shapes?: PhotoShape[] } | null;
+    if (Array.isArray(sheet?.shapes)) files.push(...sheet.shapes.flatMap((s) => (s?.photo?.file ? [s.photo.file] : [])));
   } catch { /* ignore */ }
   return files;
 }

@@ -6,7 +6,8 @@ import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { addBooking, getElementsByIds, missingPhotos } from "@/lib/store";
 import { elementBox } from "@/lib/pageSize";
 import { LAYOUT_SLOTS } from "@/components/TemplatePreview";
-import { MAX_COLLAGE_NODES, type CollageNode } from "@/lib/collage";
+import { MAX_COLLAGE_NODES, type CollageNode, type Orientation } from "@/lib/collage";
+import { MAX_FREE_POINTS, MAX_SHAPES, SHAPE_KIND_IDS, fitOnPage, type PhotoShape, type Pt, type ShapeKind } from "@/lib/shapes";
 import { PHOTO_FILE_RE, type CanvasItem, type Order, type OrderPage, type PhotoFill } from "@/lib/types";
 
 export type CheckoutState =
@@ -43,6 +44,26 @@ function cleanCollageNode(raw: unknown, depth: number, budget: { count: number }
     return { id, kind: "split", dir: n.dir, at: num(n.at, 3, 97), a, b };
   }
   return null;
+}
+
+/** Rebuilds the shapes on a photo shapes sheet; shapes without a photo aren't printed, so they're dropped. */
+function cleanShapes(raw: unknown, orientation: Orientation): PhotoShape[] {
+  const out: PhotoShape[] = [];
+  for (const r of Array.isArray(raw) ? raw.slice(0, MAX_SHAPES) : []) {
+    const s = r as Record<string, unknown> | null;
+    const photo = cleanFill(s?.photo);
+    if (!s || !photo || !SHAPE_KIND_IDS.includes(s.kind as ShapeKind)) continue;
+    const kind = s.kind as ShapeKind;
+    let points: Pt[] | undefined;
+    if (kind === "free") {
+      const pts = Array.isArray(s.points) ? s.points.slice(0, MAX_FREE_POINTS) : [];
+      points = pts.filter((p): p is [unknown, unknown] => Array.isArray(p) && p.length === 2).map(([x, y]) => [num(x, 0, 100), num(y, 0, 100)] as Pt);
+      if (points.length < 3) continue;
+    }
+    const box = fitOnPage({ x: num(s.x, 0, 100), y: num(s.y, 0, 100), w: num(s.w, 0, 100), h: num(s.h, 0, 100) }, orientation);
+    out.push({ id: String(s.id ?? "").slice(0, 20) || "s", kind, ...box, ...(points ? { points } : {}), photo });
+  }
+  return out;
 }
 
 const color = (v: unknown) => (typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v) ? v : "#ffffff");
@@ -87,6 +108,10 @@ async function sanitiseOrder(raw: unknown): Promise<Order | string> {
       const root = cleanCollageNode(p.collage?.root, 0, { count: 0 });
       const orientation = p.collage?.orientation === "landscape" ? "landscape" : "portrait";
       if (root) pages.push({ kind: "collage", id, collage: { orientation, root } });
+    } else if (p?.kind === "shapes") {
+      const orientation = p.sheet?.orientation === "landscape" ? "landscape" : "portrait";
+      const shapes = cleanShapes(p.sheet?.shapes, orientation);
+      if (shapes.length) pages.push({ kind: "shapes", id, sheet: { orientation, shapes } });
     } else if (p?.kind === "custom" && Array.isArray(p.items)) {
       const items: CanvasItem[] = [];
       for (const it of p.items.slice(0, 200)) {

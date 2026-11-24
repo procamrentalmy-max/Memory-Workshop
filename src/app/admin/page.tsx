@@ -133,6 +133,7 @@ async function BookingList() {
                 {b.order.pages.map((p) =>
                   p.kind === "preset" ? TEMPLATES.find((t) => t.id === p.templateId)?.name
                     : p.kind === "collage" ? `Photo collage (${p.collage.orientation}, ${layout(p.collage.root).leaves.length} sections)`
+                    : p.kind === "shapes" ? `Photo shapes (${p.sheet.orientation}, ${p.sheet.shapes.length} photos)`
                     : `Custom design (${p.items.length} items)`,
                 ).join(", ") || "—"}
               </td>

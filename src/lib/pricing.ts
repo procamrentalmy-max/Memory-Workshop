@@ -1,4 +1,6 @@
+import { collagePhotos } from "./collage";
 import { DRINKS, PRICING, SESSION_HOURS } from "./data";
+import { sheetPhotos } from "./shapes";
 import type { CanvasItem, Order, OrderPage } from "./types";
 
 /** Only image elements cost money; sections and text boxes are free. */
@@ -20,8 +22,13 @@ export function orderTotals(order: Order) {
   return { session, pages, drinks, total: session + pages + drinks };
 }
 
+/** Photo collage and photo shapes sheets are charged per photo printed. */
+export function photoCount(p: OrderPage) {
+  return p.kind === "collage" ? collagePhotos(p.collage.root).length : p.kind === "shapes" ? sheetPhotos(p.sheet).length : 0;
+}
+
 export function pagePrice(p: OrderPage) {
   if (p.kind === "preset") return PRICING.perPage;
-  if (p.kind === "collage") return PRICING.collagePage;
+  if (p.kind === "collage" || p.kind === "shapes") return photoCount(p) * PRICING.photoPrint;
   return customPagePrice(p.items);
 }

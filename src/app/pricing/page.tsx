@@ -22,7 +22,7 @@ export default function PricingPage() {
       <h1 className="font-display text-4xl font-semibold sm:text-5xl">Pricing</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">Your time in the studio, plus the pages you choose to make.</p>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-3">
+      <div className="mt-10 grid gap-6 md:grid-cols-2">
         <div className="relative rounded-2xl bg-card p-8 shadow-sm">
           <span className="washi -top-2 left-8 -rotate-3" style={{ ["--tape" as string]: "#c4553a" }} />
           <h2 className="font-display text-2xl font-semibold">Studio session</h2>
@@ -42,6 +42,16 @@ export default function PricingPage() {
           <h2 className="font-display text-2xl font-semibold">Design your own</h2>
           <p className="mt-4 font-display text-5xl font-semibold">Pay per element</p>
           <p className="mt-4 text-sm">Each element shows its own price. Coloured sections and text boxes are free.</p>
+        </div>
+        <div className="relative rounded-2xl bg-card p-8 shadow-sm">
+          <span className="washi -top-2 left-8 rotate-2" style={{ ["--tape" as string]: "#3d5a80" }} />
+          <h2 className="font-display text-2xl font-semibold">Photo collage</h2>
+          <p className="mt-4 font-display text-5xl font-semibold">{formatRM(PRICING.photoPrint)}</p>
+          <p className="text-ink-soft">per photo printed</p>
+          <p className="mt-4 text-sm">
+            Split an A4 sheet into sections or draw your own shapes, and add your photos.{" "}
+            <Link href="/collage" className="font-semibold text-accent underline">Make one</Link>
+          </p>
         </div>
       </div>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PhotoImg, clampFill } from "@/components/PhotoImg";
+import { clipPath, svgPoints, type Pt } from "@/lib/shapes";
 import type { PhotoFill } from "@/lib/types";
 import { uploadPhoto } from "./photos";
 
@@ -10,9 +11,10 @@ import { uploadPhoto } from "./photos";
  * inside the frame and zoom (slider, mouse wheel or pinch) to crop it.
  * Render it only while open (a fresh one per frame), e.g. {target && <PhotoEditor … />}.
  */
-export function PhotoEditor({ aspect, fill, label = "Photo frame", onClose, onSave }: {
+export function PhotoEditor({ aspect, fill, label = "Photo frame", mask, onClose, onSave }: {
   aspect: number; // frame width ÷ height
   fill?: PhotoFill;
+  mask?: Pt[]; // shaped frames: the outline (in % of the frame); the photo outside it is shown faded
   label?: string;
   onClose: () => void;
   onSave: (fill: PhotoFill | null) => void;
@@ -124,7 +126,12 @@ export function PhotoEditor({ aspect, fill, label = "Photo frame", onClose, onSa
           className={`relative mx-auto mt-4 select-none overflow-hidden rounded-md bg-paper-2 shadow-inner ring-1 ring-line ${draft ? "cursor-grab touch-none active:cursor-grabbing" : ""}`}
           style={{ aspectRatio: String(aspect), width: `min(100%, calc(55vh * ${aspect}))`, containerType: "size" }}
         >
-          {draft ? (
+          {draft && mask ? (
+            <>
+              <div className="absolute inset-0 opacity-30"><PhotoImg fill={draft} /></div>
+              <div className="absolute inset-0" style={{ clipPath: clipPath(mask) }}><PhotoImg fill={draft} /></div>
+            </>
+          ) : draft ? (
             <PhotoImg fill={draft} />
           ) : (
             <div className="absolute inset-0 grid place-items-center p-4 text-center">
@@ -137,6 +144,11 @@ export function PhotoEditor({ aspect, fill, label = "Photo frame", onClose, onSa
                 )}
               </div>
             </div>
+          )}
+          {mask && (
+            <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+              <polygon points={svgPoints(mask)} fill="none" stroke={draft ? "#fff" : "#6b6058"} strokeWidth={2} vectorEffect="non-scaling-stroke" strokeDasharray={draft ? undefined : "5 4"} />
+            </svg>
           )}
           {draft && busy && <div className="absolute inset-0 grid place-items-center bg-white/70 text-sm font-semibold">Uploading…</div>}
         </div>

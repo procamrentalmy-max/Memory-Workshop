@@ -9,6 +9,7 @@ import { customPagePrice, orderTotals, pagePrice } from "@/lib/pricing";
 import { elementSrc, type CanvasItem, type Element, type ImageItem, type Order, type OrderPage, type PhotoFill, type TextItem } from "@/lib/types";
 import { CanvasView, ItemContent, boxStyle } from "@/components/CanvasView";
 import { CollageView } from "@/components/CollageView";
+import { ShapesView } from "@/components/ShapesView";
 import { LAYOUT_SLOTS, TemplatePreview } from "@/components/TemplatePreview";
 import { ActionBar, nextBtn } from "./ActionBar";
 import { PhotoEditor } from "./PhotoEditor";
@@ -701,8 +702,9 @@ function YourPages({ order, onEdit, onEditPreset }: {
             <li key={p.id} className="w-36 shrink-0 rounded-xl border border-line bg-card p-2">
               {p.kind === "preset" && tpl ? <TemplatePreview template={tpl} photos={p.photos} />
                 : p.kind === "custom" ? <CanvasView items={p.items} background={p.background} />
-                : p.kind === "collage" ? <CollageView collage={p.collage} /> : null}
-              <p className="mt-2 truncate text-sm font-semibold">{tpl ? tpl.name : p.kind === "collage" ? "Photo collage" : "Your design"}</p>
+                : p.kind === "collage" ? <CollageView collage={p.collage} />
+                : p.kind === "shapes" ? <ShapesView sheet={p.sheet} /> : null}
+              <p className="mt-2 truncate text-sm font-semibold">{tpl ? tpl.name : p.kind === "collage" ? "Photo collage" : p.kind === "shapes" ? "Photo shapes" : "Your design"}</p>
               <p className="text-xs text-ink-soft">
                 {formatRM(pagePrice(p))}
                 {p.kind === "preset" && tpl && LAYOUT_SLOTS[tpl.layout] > 0 && ` · ${Object.keys(p.photos ?? {}).length}/${LAYOUT_SLOTS[tpl.layout]} photos`}
@@ -710,6 +712,7 @@ function YourPages({ order, onEdit, onEditPreset }: {
               <div className="mt-1 flex gap-3 text-xs font-semibold">
                 {p.kind === "custom" && <button type="button" onClick={() => edit(p.id)} className="text-ink hover:underline">Edit</button>}
                 {p.kind === "collage" && <Link href={`/collage?edit=${p.id}`} className="text-ink hover:underline">Edit</Link>}
+                {p.kind === "shapes" && <Link href={`/collage?mode=shapes&edit=${p.id}`} className="text-ink hover:underline">Edit</Link>}
                 {p.kind === "preset" && tpl && LAYOUT_SLOTS[tpl.layout] > 0 && (
                   <button type="button" onClick={() => onEditPreset(p)} className="text-ink hover:underline">Photos</button>
                 )}

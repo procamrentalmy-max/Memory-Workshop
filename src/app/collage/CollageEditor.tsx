@@ -13,6 +13,8 @@ import { PRICING, formatRM } from "@/lib/data";
 import type { Order, PhotoFill } from "@/lib/types";
 import { PhotoEditor } from "../book/PhotoEditor";
 import { newId, setOrder, useOrder } from "../book/orderStore";
+import { OrientationToggle } from "./OrientationToggle";
+import { ShapesEditor } from "./ShapesEditor";
 
 const DRAFT_KEY = "pm-collage-v1";
 type Draft = Collage & { editingId: string | null };
@@ -34,11 +36,35 @@ function loadDraft(): Draft {
   }
 }
 
+/** Two ways to make a photo page: split the sheet into sections, or draw shapes on a blank sheet. */
 export function CollageEditor() {
   const order = useOrder();
   const params = useSearchParams();
-  if (!order) return <p className="text-ink-soft">Loading…</p>;
-  return <Editor key={params.get("edit") ?? "new"} order={order} editId={params.get("edit")} />;
+  const mode = params.get("mode") === "shapes" ? "shapes" : "split";
+  const editId = params.get("edit");
+  return (
+    <>
+      <nav aria-label="Collage style" className="mb-5 flex w-full max-w-md rounded-full border border-line bg-card p-1 shadow-sm">
+        {([
+          { key: "split", href: "/collage", label: "Split the page", icon: <span className="grid h-4 w-3 grid-rows-2 border-2 border-current"><span className="border-b-2 border-current" /></span> },
+          { key: "shapes", href: "/collage?mode=shapes", label: "Draw shapes", icon: <span className="inline-block h-3.5 w-3.5 rounded-full border-2 border-current" /> },
+        ] as const).map((t) => (
+          <Link key={t.key} href={t.href} scroll={false} aria-current={mode === t.key ? "page" : undefined}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-semibold ${mode === t.key ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}>
+            <span aria-hidden className="grid place-items-center">{t.icon}</span>
+            {t.label}
+          </Link>
+        ))}
+      </nav>
+      {!order ? (
+        <p className="text-ink-soft">Loading…</p>
+      ) : mode === "shapes" ? (
+        <ShapesEditor key={editId ?? "new"} order={order} editId={editId} />
+      ) : (
+        <Editor key={editId ?? "new"} order={order} editId={editId} />
+      )}
+    </>
+  );
 }
 
 function Editor({ order, editId }: { order: Order; editId: string | null }) {
@@ -239,7 +265,7 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
 
   function addToOrder() {
     const empty = leaves.length - filled;
-    if (empty > 0 && !confirm(`${empty} section${empty === 1 ? " has" : "s have"} no photo yet. Add the collage anyway?`)) return;
+    if (empty > 0 && !confirm(`${empty} section${empty === 1 ? " has" : "s have"} no photo yet and will print blank. Add the collage anyway?`)) return;
     const page = { kind: "collage" as const, id: draft.editingId ?? newId(), collage: { orientation: draft.orientation, root: draft.root } };
     setOrder((o) => ({
       ...o,
@@ -357,19 +383,7 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
 
       {/* Tools */}
       <section aria-label="Collage tools" className="flex flex-col gap-5 rounded-2xl bg-card p-4 shadow-sm">
-        <div>
-          <h2 className="text-sm font-semibold">Paper</h2>
-          <div className="mt-2 flex rounded-full border border-line p-1" role="group" aria-label="Orientation">
-            {(["portrait", "landscape"] as const).map((o) => (
-              <button key={o} type="button" onClick={() => setOrientation(o)} aria-pressed={draft.orientation === o}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ${draft.orientation === o ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}>
-                <span className={`inline-block border-2 border-current ${o === "portrait" ? "h-4 w-3" : "h-3 w-4"}`} aria-hidden />
-                {o === "portrait" ? "Portrait" : "Landscape"}
-              </button>
-            ))}
-          </div>
-          <p className="mt-1 text-xs text-ink-soft">A4 · {sheet.w / 10} × {sheet.h / 10} cm</p>
-        </div>
+        <OrientationToggle value={draft.orientation} onChange={setOrientation} />
 
         <div>
           <h2 className="text-sm font-semibold">Quick layouts</h2>
@@ -397,8 +411,8 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
 
         <div className="mt-auto border-t border-line pt-3">
           <div className="flex items-baseline justify-between text-sm">
-            <span className="text-ink-soft">{leaves.length} section{leaves.length === 1 ? "" : "s"} · {filled} photo{filled === 1 ? "" : "s"} added</span>
-            <span className="font-display text-2xl font-semibold">{formatRM(PRICING.collagePage)}</span>
+            <span className="text-ink-soft">{leaves.length} section{leaves.length === 1 ? "" : "s"} · {filled} photo{filled === 1 ? "" : "s"} × {formatRM(PRICING.photoPrint)}</span>
+            <span className="font-display text-2xl font-semibold">{formatRM(filled * PRICING.photoPrint)}</span>
           </div>
           {added ? (
             <div className="mt-3 rounded-xl bg-sage/15 p-3 text-sm">
