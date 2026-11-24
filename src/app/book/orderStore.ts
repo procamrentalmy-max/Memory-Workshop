@@ -49,3 +49,9 @@ export function useOrder(): Order | null {
 }
 
 export const newId = () => Math.random().toString(36).slice(2, 10);
+
+/** The current order, read outside React (e.g. to check which photos are still in use). */
+export function getOrder(): Order {
+  load();
+  return state;
+}

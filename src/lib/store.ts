@@ -12,6 +12,8 @@ export type Booking = {
   payment: string;
   order: Order;
   totals: { session: number; pages: number; drinks: number; total: number };
+  printedAt?: string | null; // the worker printed the order's photos
+  settledAt?: string | null; // the customer paid and left; their photos are deleted
 };
 
 type ElementRow = {
@@ -104,17 +106,46 @@ export async function getElementsByIds(ids: string[]): Promise<Element[]> {
 
 type BookingRow = {
   reference: string; created_at: string; name: string; email: string; phone: string; notes: string;
-  payment: string; order: Order; totals: Booking["totals"];
+  payment: string; order: Order; totals: Booking["totals"]; printed_at: string | null; settled_at: string | null;
 };
+const BOOKING_COLUMNS = "reference,created_at,name,email,phone,notes,payment,order,totals,printed_at,settled_at";
+const toBooking = ({ created_at, printed_at, settled_at, ...r }: BookingRow): Booking => ({
+  ...r, createdAt: created_at, printedAt: printed_at, settledAt: settled_at,
+});
 
 export async function getBookings(limit = 200): Promise<Booking[]> {
   const { data, error } = await db()
     .from("bookings")
-    .select("reference,created_at,name,email,phone,notes,payment,order,totals")
+    .select(BOOKING_COLUMNS)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(`Could not load bookings: ${error.message}`);
-  return (data as BookingRow[]).map((r) => ({ ...r, createdAt: r.created_at }));
+  return (data as BookingRow[]).map(toBooking);
+}
+
+/** The worker page: orders still open (bill not settled), earliest visit first, and the latest settled ones. */
+export async function getWorkerOrders(): Promise<{ open: Booking[]; settled: Booking[] }> {
+  const [open, settled] = await Promise.all([
+    db().from("bookings").select(BOOKING_COLUMNS).is("settled_at", null)
+      .order("visit_date", { ascending: true }).order("arrival_time", { ascending: true }).limit(200),
+    db().from("bookings").select(BOOKING_COLUMNS).not("settled_at", "is", null)
+      .order("settled_at", { ascending: false }).limit(15),
+  ]);
+  if (open.error || settled.error) throw new Error(`Could not load orders: ${(open.error ?? settled.error)!.message}`);
+  return { open: (open.data as BookingRow[]).map(toBooking), settled: (settled.data as BookingRow[]).map(toBooking) };
+}
+
+export async function setPrinted(reference: string, printed: boolean) {
+  const { error } = await db().from("bookings").update({ printed_at: printed ? new Date().toISOString() : null }).eq("reference", reference);
+  if (error) throw new Error(`Could not update the order: ${error.message}`);
+}
+
+/** The customer has paid and left: mark the bill settled and delete their photos straight away. */
+export async function settleBooking(reference: string): Promise<{ deleted: number }> {
+  const { error } = await db().from("bookings").update({ settled_at: new Date().toISOString() }).eq("reference", reference).is("settled_at", null);
+  if (error) throw new Error(`Could not update the order: ${error.message}`);
+  const { deleted } = await deleteExpiredPhotos();
+  return { deleted };
 }
 
 export async function addBooking(b: Omit<Booking, "reference" | "createdAt">): Promise<string> {
@@ -179,11 +210,13 @@ export async function removeCafeMenu() {
 
 /* ───────── Customer photos: retention ─────────
  * The rules live in the database function customer_photo_status():
- *   booked        in a booking whose session hasn't ended yet  -> kept
- *   session_over  its booking's session has ended (arrival + 1.5 h) -> deleted
+ *   booked        in a booking whose bill isn't settled yet -> kept for printing
+ *   session_over  the bill is settled (or the day after the visit is over) -> deleted
  *   draft         not booked, used in the last PHOTO_KEEP_DAYS days -> kept
  *   abandoned     not booked and untouched for PHOTO_KEEP_DAYS days -> deleted
- * An hourly Supabase job (edge function "cleanup-photos") deletes expired photos automatically.
+ * Settling a bill on the worker page deletes that order's photos at once; photos a customer replaces
+ * or discards are released by their browser straight away. An hourly Supabase job (edge function
+ * "cleanup-photos") deletes anything else that has expired.
  */
 
 /** Must match the 7 days in customer_photo_status() in the database. */
@@ -194,9 +227,9 @@ type PhotoStatusRow = { file: string; bytes: number; status: "booked" | "session
 export type PhotoCleanupReport = {
   total: number;
   totalBytes: number;
-  booked: number; // waiting for their session
+  booked: number; // in an order whose bill isn't settled yet
   drafts: number; // not booked yet, used recently
-  expired: { name: string; size: number }[]; // session over, or untouched draft: will be deleted
+  expired: { name: string; size: number }[]; // bill settled / visit over, or untouched draft: will be deleted
   expiredBytes: number;
 };
 
@@ -236,6 +269,19 @@ export async function touchPhotos(files: string[]): Promise<number> {
   const { data, error } = await db().rpc("touch_customer_photos", { files });
   if (error) throw new Error(`Could not update photos: ${error.message}`);
   return Number(data ?? 0);
+}
+
+/** Deletes photos a customer no longer uses (replaced, removed or discarded). Photos in a booking are never touched. */
+export async function releasePhotos(files: string[]): Promise<number> {
+  if (files.length === 0) return 0;
+  const { data, error } = await db().rpc("unbooked_photos", { files });
+  if (error) throw new Error(`Could not check photos: ${error.message}`);
+  const free = (data as string[] | null) ?? [];
+  if (free.length === 0) return 0;
+  const removed = await db().storage.from(PHOTOS_BUCKET).remove(free);
+  if (removed.error) throw new Error(`Could not delete photos: ${removed.error.message}`);
+  await db().from("customer_photos").delete().in("file", free);
+  return free.length;
 }
 
 /** Which of these photo files no longer exist (e.g. cleaned up before the customer booked). */

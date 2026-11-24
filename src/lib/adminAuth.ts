@@ -1,8 +1,17 @@
-// Simple password protection for the admin area (HTTP Basic Auth, any username).
-// Set ADMIN_PASSWORD in .env.local. If it isn't set, the admin area is locked.
+// Simple password protection (HTTP Basic Auth, any username).
+// ADMIN_PASSWORD opens the admin area and the worker page; WORKER_PASSWORD (optional) opens only the
+// worker page, for staff who print orders. If a password isn't set, that area is locked.
 
 export function isAdminAuthorized(authHeader: string | null): boolean {
-  const password = process.env.ADMIN_PASSWORD;
+  return passwordMatches(authHeader, process.env.ADMIN_PASSWORD);
+}
+
+/** The worker page: staff password or the admin password. */
+export function isStaffAuthorized(authHeader: string | null): boolean {
+  return passwordMatches(authHeader, process.env.WORKER_PASSWORD) || passwordMatches(authHeader, process.env.ADMIN_PASSWORD);
+}
+
+function passwordMatches(authHeader: string | null, password: string | undefined): boolean {
   if (!password || !authHeader?.startsWith("Basic ")) return false;
   try {
     const decoded = atob(authHeader.slice(6));

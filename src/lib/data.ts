@@ -183,6 +183,10 @@ export const FAQS = [
     a: "Yes. When you choose your pages, tap any photo frame to add a photo from your gallery, then move and zoom it to fit. We'll print them ready for your visit. Bring tickets, souvenirs and other keepsakes too.",
   },
   {
+    q: "What happens to my photos?",
+    a: "They're only kept while you make your pages and until we've printed them. As soon as you've settled your bill and leave, they're deleted. Photos you swap out or discard are deleted straight away.",
+  },
+  {
     q: "Do stickers and stationery cost extra?",
     a: "No. Stickers, washi tape, pens, stamps and all our stationery are free to use during your session, as much as you like.",
   },

@@ -12,11 +12,11 @@ import {
 import { PRICING, formatRM } from "@/lib/data";
 import type { Order, PhotoFill } from "@/lib/types";
 import { PhotoEditor } from "../book/PhotoEditor";
+import { COLLAGE_DRAFT_KEY, discardPhotoDraft, photoDraftStarted, releaseUnusedPhotos, usePhotoCleanup } from "../book/devicePhotos";
 import { newId, setOrder, useOrder } from "../book/orderStore";
 import { OrientationToggle } from "./OrientationToggle";
 import { ShapesEditor } from "./ShapesEditor";
 
-const DRAFT_KEY = "pm-collage-v1";
 type Draft = Collage & { editingId: string | null };
 const START: Draft = { orientation: "portrait", root: { id: "root", kind: "leaf" }, editingId: null };
 const PRESETS = [
@@ -29,33 +29,56 @@ const PRESETS = [
 
 function loadDraft(): Draft {
   try {
-    const raw = window.localStorage.getItem(DRAFT_KEY);
+    const raw = window.localStorage.getItem(COLLAGE_DRAFT_KEY);
     return raw ? { ...START, ...JSON.parse(raw) } : START;
   } catch {
     return START;
   }
 }
 
-/** Two ways to make a photo page: split the sheet into sections, or draw shapes on a blank sheet. */
+/**
+ * Two ways to make a photo page: split the sheet into sections, or draw shapes on a blank sheet.
+ * Each device works on one photo page at a time: once it's added to the order, the next one can start.
+ */
 export function CollageEditor() {
   const order = useOrder();
+  const router = useRouter();
   const params = useSearchParams();
-  const mode = params.get("mode") === "shapes" ? "shapes" : "split";
   const editId = params.get("edit");
+  const requested = params.get("mode") === "shapes" ? "shapes" : "split";
+  const other = requested === "shapes" ? "split" : "shapes";
+  // Already making the other kind of page on this device? Carry on with that one.
+  const mode = order && !editId && !photoDraftStarted(requested) && photoDraftStarted(other) ? other : requested;
+  const label = (m: "split" | "shapes") => (m === "split" ? "split-page collage" : "photo shapes page");
+
+  function switchTo(target: "split" | "shapes") {
+    if (target === mode && !editId) return;
+    if (!editId && photoDraftStarted(mode)) {
+      if (!confirm(`You can make one photo page at a time. Add your ${label(mode)} to your order first, or discard it to start a ${label(target)}.\n\nDiscard it now?`)) return;
+      discardPhotoDraft(mode);
+    }
+    router.push(target === "shapes" ? "/collage?mode=shapes" : "/collage", { scroll: false });
+  }
+
   return (
     <>
       <nav aria-label="Collage style" className="mb-5 flex w-full max-w-md rounded-full border border-line bg-card p-1 shadow-sm">
         {([
-          { key: "split", href: "/collage", label: "Split the page", icon: <span className="grid h-4 w-3 grid-rows-2 border-2 border-current"><span className="border-b-2 border-current" /></span> },
-          { key: "shapes", href: "/collage?mode=shapes", label: "Draw shapes", icon: <span className="inline-block h-3.5 w-3.5 rounded-full border-2 border-current" /> },
+          { key: "split", label: "Split the page", icon: <span className="grid h-4 w-3 grid-rows-2 border-2 border-current"><span className="border-b-2 border-current" /></span> },
+          { key: "shapes", label: "Draw shapes", icon: <span className="inline-block h-3.5 w-3.5 rounded-full border-2 border-current" /> },
         ] as const).map((t) => (
-          <Link key={t.key} href={t.href} scroll={false} aria-current={mode === t.key ? "page" : undefined}
+          <button key={t.key} type="button" onClick={() => switchTo(t.key)} aria-current={mode === t.key ? "page" : undefined}
             className={`flex flex-1 items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-semibold ${mode === t.key ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}>
             <span aria-hidden className="grid place-items-center">{t.icon}</span>
             {t.label}
-          </Link>
+          </button>
         ))}
       </nav>
+      {mode !== requested && (
+        <p className="mb-4 rounded-xl bg-mustard/15 px-4 py-3 text-sm" role="status">
+          You&apos;re in the middle of a {label(mode)}. Add it to your order (or start over) before making a different one.
+        </p>
+      )}
       {!order ? (
         <p className="text-ink-soft">Loading…</p>
       ) : mode === "shapes" ? (
@@ -89,6 +112,7 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
   // Undo history
   const draftRef = useRef(draft);
   useEffect(() => { draftRef.current = draft; }, [draft]);
+  usePhotoCleanup(collagePhotos(draft.root).map((f) => f.file));
   const history = useRef<Draft[]>([]);
   const [canUndo, setCanUndo] = useState(false);
   const snapshot = () => {
@@ -99,7 +123,7 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
     setDraftState((d) => {
       const next = fn(d);
       if (!next.editingId) {
-        try { window.localStorage.setItem(DRAFT_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+        try { window.localStorage.setItem(COLLAGE_DRAFT_KEY, JSON.stringify(next)); } catch { /* ignore */ }
       }
       return next;
     });
@@ -273,11 +297,24 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
         ? o.pages.map((p) => (p.id === draft.editingId ? page : p))
         : [...o.pages, page],
     }));
-    if (draft.editingId) return router.push("/book");
+    if (draft.editingId) {
+      releaseUnusedPhotos();
+      return router.push("/book");
+    }
     setAdded(true);
     history.current = [];
     setCanUndo(false);
     setDraft(() => ({ ...START, orientation: draft.orientation }));
+    setTimeout(() => releaseUnusedPhotos()); // photos replaced along the way are no longer needed
+  }
+
+  function startOver() {
+    if (!confirm("Start over? This clears the page and deletes its photos.")) return;
+    history.current = [];
+    setCanUndo(false);
+    setSelectedLine(null);
+    setDraft((d) => ({ ...START, orientation: d.orientation, editingId: d.editingId }));
+    setTimeout(() => releaseUnusedPhotos());
   }
 
   // Keyboard: Ctrl/Cmd+Z undo, Delete removes the selected line.
@@ -397,6 +434,9 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
             ))}
           </div>
           <p className="mt-1 text-xs text-ink-soft">Your photos move into the new layout. Undo if you change your mind.</p>
+          {(lines.length > 0 || filled > 0) && !draft.editingId && (
+            <button type="button" onClick={startOver} className="mt-2 text-xs font-semibold text-accent hover:underline">Start over</button>
+          )}
         </div>
 
         <div className="rounded-xl bg-paper-2 p-3 text-sm">
@@ -444,6 +484,7 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
       {photoLeaf && (
         <PhotoEditor
           aspect={rectAspect(photoLeaf.rect, draft.orientation)}
+          printMm={{ w: (photoLeaf.rect.w / 100) * sheet.w, h: (photoLeaf.rect.h / 100) * sheet.h }}
           fill={photoLeaf.node.photo}
           label="Photo for this section"
           onClose={() => setPhotoFor(null)}

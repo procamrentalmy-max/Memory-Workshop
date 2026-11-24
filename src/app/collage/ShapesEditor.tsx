@@ -13,10 +13,10 @@ import {
 } from "@/lib/shapes";
 import type { Order, PhotoFill } from "@/lib/types";
 import { PhotoEditor } from "../book/PhotoEditor";
+import { SHAPES_DRAFT_KEY, releaseUnusedPhotos, usePhotoCleanup } from "../book/devicePhotos";
 import { newId, setOrder } from "../book/orderStore";
 import { OrientationToggle } from "./OrientationToggle";
 
-export const SHAPES_DRAFT_KEY = "pm-shapes-v1";
 type Draft = ShapeSheet & { editingId: string | null };
 const START: Draft = { orientation: "portrait", shapes: [], editingId: null };
 
@@ -66,6 +66,7 @@ export function ShapesEditor({ order, editId }: { order: Order; editId: string |
   // Undo history
   const draftRef = useRef(draft);
   useEffect(() => { draftRef.current = draft; }, [draft]);
+  usePhotoCleanup(draft.shapes.flatMap((s) => (s.photo ? [s.photo.file] : [])));
   const history = useRef<Draft[]>([]);
   const [canUndo, setCanUndo] = useState(false);
   const snapshot = () => {
@@ -340,11 +341,13 @@ export function ShapesEditor({ order, editId }: { order: Order; editId: string |
     setDraft((d) => ({ ...d, orientation: next, shapes: reorient(d.shapes, d.orientation, next) }));
     setAdded(false);
   }
-  function clearAll() {
-    if (!shapes.length || !confirm("Remove every shape from this page?")) return;
-    snapshot();
+  function startOver() {
+    if (!shapes.length || !confirm("Start over? This clears the page and deletes its photos.")) return;
+    history.current = [];
+    setCanUndo(false);
     setShapes(() => []);
     setSelected(null);
+    setTimeout(() => releaseUnusedPhotos());
   }
 
   function addToOrder() {
@@ -357,12 +360,16 @@ export function ShapesEditor({ order, editId }: { order: Order; editId: string |
         ? ord.pages.map((p) => (p.id === draft.editingId ? page : p))
         : [...ord.pages, page],
     }));
-    if (draft.editingId) return router.push("/book");
+    if (draft.editingId) {
+      releaseUnusedPhotos();
+      return router.push("/book");
+    }
     setAdded(true);
     setSelected(null);
     history.current = [];
     setCanUndo(false);
     setDraft(() => ({ ...START, orientation: o }));
+    setTimeout(() => releaseUnusedPhotos()); // photos replaced along the way are no longer needed
   }
 
   // Keyboard: Ctrl/Cmd+Z undo, Delete removes the selected shape, arrows nudge it 1 mm (Shift: 5 mm), Esc lets go.
@@ -529,7 +536,7 @@ export function ShapesEditor({ order, editId }: { order: Order; editId: string |
             <li>Tap a shape to add your photo, then move and zoom it to crop.</li>
           </ul>
           {shapes.length > 0 && (
-            <button type="button" onClick={clearAll} className="mt-2 text-xs font-semibold text-accent hover:underline">Clear the page</button>
+            <button type="button" onClick={startOver} className="mt-2 text-xs font-semibold text-accent hover:underline">Start over</button>
           )}
         </div>
 
@@ -572,6 +579,7 @@ export function ShapesEditor({ order, editId }: { order: Order; editId: string |
           aspect={shapeMm(photoShape, o).w / shapeMm(photoShape, o).h}
           fill={photoShape.photo}
           mask={shapeOutline(photoShape, o)}
+          printMm={shapeMm(photoShape, o)}
           label={`Photo for this ${labelOf(photoShape.kind).toLowerCase()}`}
           onClose={() => setPhotoFor(null)}
           onSave={savePhoto}

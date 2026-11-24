@@ -2,19 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PhotoImg, clampFill } from "@/components/PhotoImg";
+import { dpiQuality, photoDpi } from "@/lib/printing";
 import { clipPath, svgPoints, type Pt } from "@/lib/shapes";
 import type { PhotoFill } from "@/lib/types";
-import { uploadPhoto } from "./photos";
+import { releasePhotos, uploadPhoto } from "./photos";
 
 /**
  * Dialog for one photo frame: upload a photo from the gallery, then drag it to move it
  * inside the frame and zoom (slider, mouse wheel or pinch) to crop it.
  * Render it only while open (a fresh one per frame), e.g. {target && <PhotoEditor … />}.
  */
-export function PhotoEditor({ aspect, fill, label = "Photo frame", mask, onClose, onSave }: {
+export function PhotoEditor({ aspect, fill, label = "Photo frame", mask, printMm, onClose, onSave }: {
   aspect: number; // frame width ÷ height
   fill?: PhotoFill;
   mask?: Pt[]; // shaped frames: the outline (in % of the frame); the photo outside it is shown faded
+  printMm?: { w: number; h: number }; // printed size of the frame, to show how sharp the photo will print
   label?: string;
   onClose: () => void;
   onSave: (fill: PhotoFill | null) => void;
@@ -23,6 +25,8 @@ export function PhotoEditor({ aspect, fill, label = "Photo frame", mask, onClose
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  // Photos uploaded in this window. Any that aren't kept (cancelled, or changed again) are deleted at once.
+  const uploads = useRef<string[]>([]);
   const boxRef = useRef<HTMLDivElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const gesture = useRef<
@@ -33,7 +37,11 @@ export function PhotoEditor({ aspect, fill, label = "Photo frame", mask, onClose
 
   // Close on Escape; stop the page behind from scrolling.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      releasePhotos(uploads.current);
+      onClose();
+    };
     window.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -48,7 +56,9 @@ export function PhotoEditor({ aspect, fill, label = "Photo frame", mask, onClose
     setBusy(true);
     setError("");
     try {
-      setDraft(await uploadPhoto(file));
+      const uploaded = await uploadPhoto(file);
+      uploads.current.push(uploaded.file);
+      setDraft(uploaded);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -56,6 +66,15 @@ export function PhotoEditor({ aspect, fill, label = "Photo frame", mask, onClose
       if (inputRef.current) inputRef.current.value = "";
     }
   }
+
+  const close = () => {
+    releasePhotos(uploads.current);
+    onClose();
+  };
+  const save = (result: PhotoFill | null) => {
+    releasePhotos(uploads.current.filter((f) => f !== result?.file));
+    onSave(result);
+  };
 
   /** How far (px) the photo extends past the frame, for turning finger movement into position. */
   function overflow(f: PhotoFill) {
@@ -107,11 +126,11 @@ export function PhotoEditor({ aspect, fill, label = "Photo frame", mask, onClose
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-3 sm:p-6" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-3 sm:p-6" onPointerDown={(e) => e.target === e.currentTarget && close()}>
       <div role="dialog" aria-modal="true" aria-label={label} className="max-h-[95vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-card p-4 shadow-2xl sm:p-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="font-display text-xl font-semibold">{draft ? "Position your photo" : "Add a photo"}</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="grid h-9 w-9 place-items-center rounded-full text-xl hover:bg-paper-2">×</button>
+          <button type="button" onClick={close} aria-label="Close" className="grid h-9 w-9 place-items-center rounded-full text-xl hover:bg-paper-2">×</button>
         </div>
 
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => choose(e.target.files?.[0])} />
@@ -158,6 +177,7 @@ export function PhotoEditor({ aspect, fill, label = "Photo frame", mask, onClose
         {draft && (
           <>
             <p className="mt-2 text-center text-xs text-ink-soft">Drag to move · zoom to crop</p>
+            {printMm && <PrintQuality dpi={photoDpi(draft, printMm.w, printMm.h)} />}
             <label className="mt-3 flex items-center gap-3 text-sm font-semibold">
               Zoom
               <input type="range" min={1} max={4} step={0.01} value={draft.zoom}
@@ -168,17 +188,26 @@ export function PhotoEditor({ aspect, fill, label = "Photo frame", mask, onClose
               <div className="flex gap-2 text-sm font-semibold">
                 <button type="button" disabled={busy} onClick={() => inputRef.current?.click()} className="rounded-full border border-line px-3 py-1.5 hover:border-ink">Change photo</button>
                 {fill && (
-                  <button type="button" onClick={() => onSave(null)} className="rounded-full border border-accent/40 px-3 py-1.5 text-accent">Remove</button>
+                  <button type="button" onClick={() => save(null)} className="rounded-full border border-accent/40 px-3 py-1.5 text-accent">Remove</button>
                 )}
               </div>
               <div className="flex gap-2">
-                <button type="button" onClick={onClose} className="btn btn-ghost !px-4 !py-2">Cancel</button>
-                <button type="button" disabled={busy} onClick={() => onSave(draft)} className="btn btn-primary !px-5 !py-2">Done</button>
+                <button type="button" onClick={close} className="btn btn-ghost !px-4 !py-2">Cancel</button>
+                <button type="button" disabled={busy} onClick={() => save(draft)} className="btn btn-primary !px-5 !py-2">Done</button>
               </div>
             </div>
           </>
         )}
       </div>
     </div>
+  );
+}
+
+function PrintQuality({ dpi }: { dpi: number }) {
+  const q = dpiQuality(dpi);
+  return (
+    <p className={`mt-1 text-center text-xs font-semibold ${q === "Low" ? "text-accent" : "text-[#3f5e41]"}`}>
+      Print quality: {q} ({dpi} dpi){q === "Low" ? " · may look blurry. Zoom out or use a bigger photo." : ""}
+    </p>
   );
 }

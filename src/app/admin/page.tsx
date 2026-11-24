@@ -99,7 +99,7 @@ async function PhotoCleanup() {
     <div className="mt-4 flex flex-wrap items-end justify-between gap-6 rounded-2xl bg-card p-6 shadow-sm">
       <dl className="flex flex-wrap gap-x-10 gap-y-4">
         {stat("Photos stored", String(r.total), mb(r.totalBytes))}
-        {stat("Booked", String(r.booked), "kept until the session ends")}
+        {stat("In orders", String(r.booked), "kept until the bill is settled")}
         {stat("Drafts", String(r.drafts), `kept ${PHOTO_KEEP_DAYS} days after last use`)}
         {stat("Expired", String(r.expired.length), mb(r.expiredBytes))}
       </dl>
@@ -125,7 +125,10 @@ async function BookingList() {
         <tbody>
           {bookings.map((b) => (
             <tr key={b.reference} className="border-t border-line align-top">
-              <td className="px-3 py-2 font-mono text-xs">{b.reference}</td>
+              <td className="px-3 py-2 font-mono text-xs">
+                {b.reference}
+                <span className="mt-1 block font-sans text-[11px] text-ink-soft">{b.settledAt ? "Settled" : b.printedAt ? "Printed" : "Open"}</span>
+              </td>
               <td className="px-3 py-2">{b.order.visit?.date}<br />{b.order.visit && to12h(b.order.visit.time)}</td>
               <td className="px-3 py-2">{b.order.visit?.people}</td>
               <td className="px-3 py-2">{b.name}<br /><span className="text-xs text-ink-soft">{b.email} · {b.phone}</span></td>
@@ -141,10 +144,7 @@ async function BookingList() {
                 {(() => {
                   // Customer photos to print, in page order.
                   const files = orderPhotoFiles(b.order);
-                  const v = b.order.visit;
-                  // Malaysia is UTC+8; a session lasts about 1.5 hours.
-                  const sessionOver = v && new Date(`${v.date}T${v.time}:00+08:00`).getTime() + 90 * 60_000 < Date.now();
-                  if (files.length && sessionOver) return <span className="text-ink-soft">Removed after visit</span>;
+                  if (files.length && b.settledAt) return <span className="text-ink-soft">Deleted (bill settled)</span>;
                   return files.length ? (
                     <span className="flex flex-wrap gap-x-2">
                       {files.map((f, i) => (
@@ -168,7 +168,10 @@ async function BookingList() {
 export default function AdminPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
-      <h1 className="font-display text-4xl font-semibold">Studio admin</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-4xl font-semibold">Studio admin</h1>
+        <a href="/worker" className="btn btn-primary !px-4 !py-2 text-sm">Open the worker page (print orders) →</a>
+      </div>
 
       <section className="mt-10">
         <h2 className="font-display text-2xl font-semibold">Upload a page element</h2>
@@ -196,8 +199,9 @@ export default function AdminPage() {
       <section className="mt-14">
         <h2 className="font-display text-2xl font-semibold">Customer photos</h2>
         <p className="mt-1 max-w-2xl text-sm text-ink-soft">
-          Photos in a booking are kept until the session is over (arrival + 1.5 hours). Photos customers added but haven&apos;t
-          booked are kept while they keep working on their pages, and deleted after {PHOTO_KEEP_DAYS} days without use.
+          Photos in an order are kept for printing until the bill is settled on the worker page, then deleted straight away
+          (if nobody settles it, they go at the end of the day after the visit). Photos customers replace or discard are
+          deleted at once; unfinished pages left in a browser are deleted after {PHOTO_KEEP_DAYS} days without use.
           Expired photos are deleted automatically every hour; the button does it straight away.
         </p>
         <Suspense fallback={<p className="mt-4 text-ink-soft">Counting photos…</p>}><PhotoCleanup /></Suspense>

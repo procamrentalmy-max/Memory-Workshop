@@ -4,8 +4,9 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 // Deletes expired customer photos. The rules live in the database function
-// public.customer_photo_status(): a photo expires when its booking's session is over
-// (arrival + 1.5 h), or when it was never booked and has not been used for 7 days.
+// public.customer_photo_status(): a photo expires when its order's bill is settled on the worker page
+// (or, if nobody settles it, at the end of the day after the visit), or when it was never booked and
+// has not been used for 7 days.
 // It is safe to call at any time: it only removes photos that the rules say have expired,
 // so no authentication is needed to trigger it.
 

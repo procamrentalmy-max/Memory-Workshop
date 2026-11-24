@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CATEGORIES, PRICING, TEMPLATES, formatRM } from "@/lib/data";
 import { PAGE, elementBox, sizeLabel } from "@/lib/pageSize";
+import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { customPagePrice, orderTotals, pagePrice } from "@/lib/pricing";
 import { elementSrc, type CanvasItem, type Element, type ImageItem, type Order, type OrderPage, type PhotoFill, type TextItem } from "@/lib/types";
 import { CanvasView, ItemContent, boxStyle } from "@/components/CanvasView";
@@ -13,6 +14,7 @@ import { ShapesView } from "@/components/ShapesView";
 import { LAYOUT_SLOTS, TemplatePreview } from "@/components/TemplatePreview";
 import { ActionBar, nextBtn } from "./ActionBar";
 import { PhotoEditor } from "./PhotoEditor";
+import { notePhotos, releaseUnusedPhotos } from "./devicePhotos";
 import { newId, setOrder, useOrder } from "./orderStore";
 
 type Mode = "preset" | "custom";
@@ -680,7 +682,15 @@ function YourPages({ order, onEdit, onEditPreset }: {
   order: Order; onEdit: () => void; onEditPreset: (p: Extract<OrderPage, { kind: "preset" }>) => void;
 }) {
   if (order.pages.length === 0) return null;
-  const remove = (id: string) => setOrder((o) => ({ ...o, pages: o.pages.filter((p) => p.id !== id) }));
+  const remove = (id: string) => {
+    const page = order.pages.find((p) => p.id === id);
+    setOrder((o) => ({ ...o, pages: o.pages.filter((p) => p.id !== id) }));
+    // Photo collage / shapes pages: their photos aren't needed any more.
+    if (page && (page.kind === "collage" || page.kind === "shapes")) {
+      notePhotos(orderPhotoFiles({ visit: null, drinks: {}, pages: [page] }));
+      releaseUnusedPhotos();
+    }
+  };
   const edit = (id: string) => {
     const p = order.pages.find((x) => x.id === id);
     if (!p || p.kind !== "custom") return;

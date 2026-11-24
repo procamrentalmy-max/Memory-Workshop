@@ -68,5 +68,8 @@ export type Order = {
 export const EMPTY_ORDER: Order = { visit: null, pages: [], drinks: {} };
 // The page is A4; its size lives in ./pageSize.ts.
 
+/** Largest photo a customer can upload (must match the "customer-photos" bucket's file size limit). */
+export const MAX_PHOTO_BYTES = 30 * 1024 * 1024;
+
 /** Stored customer photo names look like "<uuid>.jpg". */
 export const PHOTO_FILE_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jpg$/;

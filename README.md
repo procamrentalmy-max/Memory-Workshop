@@ -40,23 +40,37 @@ Built with Next.js 16 (App Router), Tailwind CSS 4 and Supabase (database + imag
 ## Supabase
 
 - `elements` table: uploaded elements (name, price, printed size in cm, image file).
-- `bookings` table: every booking, including the full order and any custom page designs.
+- `bookings` table: every booking, including the full order and any custom page designs, plus
+  `printed_at` and `settled_at` set from the worker page.
 - `elements` storage bucket: element images (publicly readable; uploads only through the server).
 
-- `customer-photos` storage bucket (private): photos customers put in photo frames.
+- `customer-photos` storage bucket (private, JPEG only, up to 30 MB each): photos customers put in photo
+  frames. Browsers upload the original photo straight to storage with a one-time link
+  (`/api/photos/upload-url`, then `/api/photos/confirm` checks it), so photos print at full resolution and
+  never pass through Vercel's 4.5 MB request limit.
 - `site-files` storage bucket (public): the café menu PDF.
 - `customer_photos` and `site_settings` tables: photo activity, and settings such as the current café menu.
 
 All tables have row-level security on with no public policies, so only the website's server
 (using the secret key) can read or write them.
 
+### Worker page
+
+`/worker` lists open orders (today, earlier unsettled, coming up) and refreshes every 30 seconds. For each photo
+collage / photo shapes page it makes a print file: an exact-size A4 PDF with the customer's original JPEGs embedded
+unchanged and cut to their sections or shapes. Print it at **actual size** (100 %, no "fit to page"), borderless when
+the design reaches the edges. It opens with `WORKER_PASSWORD` (set it in Vercel for staff) or `ADMIN_PASSWORD`.
+
 ### Customer photo retention
 
 The rules are in the database function `customer_photo_status()`:
 
-- Photos in a booking are kept until the session ends (arrival + 1.5 hours), then deleted.
-- Photos not yet booked are kept while the customer keeps using them, and deleted after 7 days without use
-  (the booking pages tell the server whenever a customer opens them).
+- Photos in an order are kept for printing until staff press **Bill settled** on the worker page; that deletes
+  them straight away. If nobody settles the bill, they are deleted at the end of the day after the visit.
+- Photos a customer replaces, cancels, or discards (Start over, removing a photo page from the order) are
+  deleted by their browser at once (`/api/photos/release`; photos in a booking are never released).
+- Photos on unfinished pages left in a browser are kept while the customer keeps using them, and deleted after
+  7 days without use (the booking pages tell the server whenever a customer opens them).
 
 The edge function `supabase/functions/cleanup-photos` deletes expired photos. It runs every hour from
 `pg_cron` (job `cleanup-customer-photos`). The admin page shows the counts and can run the clean-up straight away.
