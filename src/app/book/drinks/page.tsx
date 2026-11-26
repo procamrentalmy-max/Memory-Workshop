@@ -38,7 +38,7 @@ export default function DrinksStep() {
                 <p className="font-display text-xl font-semibold">{d.name}</p>
                 <p className="text-sm">
                   <strong>{formatRM(d.sessionPrice)}</strong>
-                  {d.sessionPrice < d.price && <span className="ml-2 text-ink-soft line-through">{formatRM(d.price)}</span>}
+                  {d.price !== null && d.sessionPrice < d.price && <span className="ml-2 text-ink-soft line-through">{formatRM(d.price)}</span>}
                 </p>
               </div>
               <div className="flex items-center rounded-full border border-line">

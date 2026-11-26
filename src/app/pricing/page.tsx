@@ -87,7 +87,7 @@ export default function PricingPage() {
               {DRINKS.map((d) => (
                 <tr key={d.name} className="border-t border-dashed border-line">
                   <td className="py-2">{d.name}</td>
-                  <td className="py-2 text-right">{formatRM(d.price)}</td>
+                  <td className="py-2 text-right">{d.price === null ? "—" : formatRM(d.price)}</td>
                   <td className="py-2 text-right font-semibold">{formatRM(d.sessionPrice)}</td>
                 </tr>
               ))}

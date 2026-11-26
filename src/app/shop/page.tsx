@@ -19,8 +19,10 @@ function CafeList() {
           <li key={d.name} className="flex items-baseline justify-between gap-4 py-2.5">
             <span>{d.name}</span>
             <span className="text-right">
-              <span className="font-semibold">{formatRM(d.price)}</span>
-              {d.sessionPrice < d.price && <span className="block text-xs text-ink-soft">{formatRM(d.sessionPrice)} with a workshop</span>}
+              <span className="font-semibold">{formatRM(d.price ?? d.sessionPrice)}</span>
+              {d.price === null ? (
+                <span className="block text-xs text-ink-soft">with a workshop</span>
+              ) : d.sessionPrice < d.price && <span className="block text-xs text-ink-soft">{formatRM(d.sessionPrice)} with a workshop</span>}
             </span>
           </li>
         ))}

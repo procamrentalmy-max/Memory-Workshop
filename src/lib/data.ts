@@ -119,14 +119,18 @@ export const SHOP: { group: string; blurb: string; items: Product[] }[] = [
 ];
 
 /** Café drinks: the regular price, and the price when added to a workshop (also used when pre-ordering). */
-export type Drink = { name: string; price: number; sessionPrice: number };
+/** `price` null = only sold as a workshop add-on. */
+export type Drink = { name: string; price: number | null; sessionPrice: number };
 export const DRINKS: Drink[] = [
-  { name: "Americano", price: 6.5, sessionPrice: 5 },
+  { name: "Americano", price: 6.5, sessionPrice: 4.9 },
+  { name: "Pot of tea (free refills)", price: null, sessionPrice: 4.9 },
   { name: "Latte", price: 8.5, sessionPrice: 7 },
   { name: "Cappuccino", price: 8.5, sessionPrice: 7 },
   { name: "Matcha", price: 8.5, sessionPrice: 8.5 }, // session price not decided yet
   { name: "Chocolate", price: 8.5, sessionPrice: 8.5 }, // session price not decided yet
 ];
+
+const drinkByName = (name: string) => DRINKS.find((d) => d.name === name)!;
 
 export const PASTRIES: Product[] = [
   { name: "Apple fritter", price: 6.5 },
@@ -159,7 +163,7 @@ export const FAQS = [
   },
   {
     q: "Is there food and coffee?",
-    a: `Water is free, and we bring round a free pastry tasting every 30 minutes. Our café serves coffee, matcha, chocolate and pastries. Add an Americano to your workshop for ${formatRM(DRINKS[0].sessionPrice)} or a latte or cappuccino for ${formatRM(DRINKS[1].sessionPrice)}. ${SEED_COUPON}`,
+    a: `Water is free, and we bring round a free pastry tasting every 30 minutes. Our café serves coffee, matcha, chocolate and pastries. Add an Americano or a pot of tea with free refills to your workshop for ${formatRM(drinkByName("Americano").sessionPrice)}, or a latte or cappuccino for ${formatRM(drinkByName("Latte").sessionPrice)}. ${SEED_COUPON}`,
   },
   {
     q: "What are NFC badges?",
