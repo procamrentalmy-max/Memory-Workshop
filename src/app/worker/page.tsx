@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { CollageView } from "@/components/CollageView";
 import { ShapesView } from "@/components/ShapesView";
-import { TEMPLATES, formatRM, to12h } from "@/lib/data";
+import { PRICING, formatRM, to12h } from "@/lib/data";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { dpiQuality, photoDpi, printSheet } from "@/lib/printing";
 import { getWorkerOrders, type Booking } from "@/lib/store";
@@ -84,9 +84,6 @@ function OrderCard({ booking: b, today }: { booking: Booking; today: string }) {
   const v = b.order.visit;
   const photoPages = b.order.pages.filter(isPhotoPage);
   const allFiles = orderPhotoFiles(b.order);
-  // Photos in ready-made / drag & drop pages: printed separately at their frame size.
-  const otherFiles = orderPhotoFiles({ ...b.order, pages: b.order.pages.filter((p) => !isPhotoPage(p)) });
-  const otherPages = b.order.pages.filter((p) => !isPhotoPage(p));
   return (
     <li className={`rounded-2xl border bg-card p-4 shadow-sm sm:p-5 ${b.printedAt ? "border-line" : "border-mustard"}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -104,12 +101,14 @@ function OrderCard({ booking: b, today }: { booking: Booking; today: string }) {
             )}
           </p>
           <p className="text-xs text-ink-soft">
-            {b.walkIn ? `Prints ${formatRM(b.totals.total)} · add to their bill at the counter` : `Order total ${formatRM(b.totals.total)} · ${b.payment}`}
+            {b.walkIn
+              ? `${photoPages.length} photo sheet${photoPages.length === 1 ? "" : "s"} · 1 per person is included, extra sheets ${formatRM(PRICING.photoPrint)} per photo · add to their bill`
+              : `Order total ${formatRM(b.totals.total)} · ${b.payment}`}
           </p>
           {b.notes && <p className="mt-1 text-sm">“{b.notes}”</p>}
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-bold ${b.printedAt ? "bg-sage/20 text-[#3f5e41]" : "bg-mustard/25 text-ink"}`}>
-          {b.printedAt ? `Printed ${klTime(b.printedAt)}` : photoPages.length || otherFiles.length ? "To print" : "No photos"}
+          {b.printedAt ? `Printed ${klTime(b.printedAt)}` : photoPages.length ? "To print" : "No photos"}
         </span>
       </div>
 
@@ -144,20 +143,6 @@ function OrderCard({ booking: b, today }: { booking: Booking; today: string }) {
               );
             })}
           </ul>
-        </div>
-      )}
-
-      {otherFiles.length > 0 && (
-        <div className="mt-4 text-sm">
-          <h3 className="font-semibold">Photos for other pages</h3>
-          <p className="text-xs text-ink-soft">
-            {otherPages.map((p) => (p.kind === "preset" ? TEMPLATES.find((t) => t.id === p.templateId)?.name : "Own design")).join(", ")} · original files
-          </p>
-          <p className="mt-1 flex flex-wrap gap-x-3">
-            {otherFiles.map((f, i) => (
-              <a key={f} href={`/api/photos/${f}`} target="_blank" rel="noreferrer" className="text-accent underline">Photo {i + 1}</a>
-            ))}
-          </p>
         </div>
       )}
 

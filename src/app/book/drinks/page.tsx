@@ -25,14 +25,20 @@ export default function DrinksStep() {
       <div className="min-w-0">
         <p className="font-hand text-2xl text-accent">step three</p>
         <h1 className="font-display text-4xl font-semibold sm:text-5xl">Choose your drink</h1>
-        <p className="mt-3 text-ink-soft">Made fresh at the studio bar and ready when you arrive. You can skip this and order later.</p>
+        <p className="mt-3 text-ink-soft">
+          Snacks and water are free flow. Add a coffee to your session for less: made fresh at the studio bar and ready when you
+          arrive. You can skip this and order at the studio.
+        </p>
 
         <ul className="mt-8 grid gap-4 sm:grid-cols-2">
           {DRINKS.map((d) => (
             <li key={d.name} className={`flex items-center justify-between gap-4 rounded-2xl border bg-card p-5 ${qty(d.name) ? "border-accent" : "border-line"}`}>
               <div>
                 <p className="font-display text-xl font-semibold">{d.name}</p>
-                <p className="text-sm text-ink-soft">{formatRM(d.price)}</p>
+                <p className="text-sm">
+                  <strong>{formatRM(d.sessionPrice)}</strong>
+                  {d.sessionPrice < d.price && <span className="ml-2 text-ink-soft line-through">{formatRM(d.price)}</span>}
+                </p>
               </div>
               <div className="flex items-center rounded-full border border-line">
                 <button type="button" onClick={() => change(d.name, -1)} aria-label={`One less ${d.name}`} className="h-10 w-10 text-lg disabled:opacity-30" disabled={!qty(d.name)}>−</button>

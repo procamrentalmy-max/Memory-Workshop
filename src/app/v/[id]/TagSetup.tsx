@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { MAX_TAG_VIDEO_BYTES, SETUP_CODE_RE, TAG_VIDEO_SECONDS, cleanSetupCode } from "@/lib/tagFormat";
+import { MAX_TAG_VIDEO_BYTES, SETUP_CODE_RE, cleanSetupCode } from "@/lib/tagFormat";
 import { CantPrepareError, prepareVideo, videoDuration } from "./prepareVideo";
 
 type Phase = "idle" | "preparing" | "uploading" | "saving" | "done";
@@ -30,7 +30,7 @@ function put(url: string, blob: Blob, type: string, onProgress?: (p: number) => 
 }
 
 /** Adding (or changing) the video on a tag: setup code → pick or record → choose 10 seconds → upload. */
-export function TagSetup({ tagId, hasVideo, ready }: { tagId: string; hasVideo: boolean; ready: boolean }) {
+export function TagSetup({ tagId, hasVideo, ready, maxSeconds }: { tagId: string; hasVideo: boolean; ready: boolean; maxSeconds: number }) {
   const router = useRouter();
   const [code, setCode] = useState("");
   const [codeOk, setCodeOk] = useState(false);
@@ -82,8 +82,8 @@ export function TagSetup({ tagId, hasVideo, ready }: { tagId: string; hasVideo: 
     setDuration(await videoDuration(f));
   }
 
-  const clip = duration ? Math.min(TAG_VIDEO_SECONDS, duration) : TAG_VIDEO_SECONDS;
-  const maxStart = duration ? Math.max(0, duration - TAG_VIDEO_SECONDS) : 0;
+  const clip = duration ? Math.min(maxSeconds, duration) : maxSeconds;
+  const maxStart = duration ? Math.max(0, duration - maxSeconds) : 0;
 
   async function save() {
     if (!file) return;
@@ -99,7 +99,7 @@ export function TagSetup({ tagId, hasVideo, ready }: { tagId: string; hasVideo: 
         ({ video, poster, width, height } = await prepareVideo(file, start, clip, setProgress));
       } catch (e) {
         // Older browsers can't prepare videos: a short MP4 can still be used as it is.
-        if (!(e instanceof CantPrepareError) || file.type !== "video/mp4" || file.size > MAX_TAG_VIDEO_BYTES || (duration ?? 99) > TAG_VIDEO_SECONDS + 0.5) {
+        if (!(e instanceof CantPrepareError) || file.type !== "video/mp4" || file.size > MAX_TAG_VIDEO_BYTES || (duration ?? 99) > maxSeconds + 0.5) {
           throw new Error(e instanceof CantPrepareError
             ? "This phone can't prepare this video. Please try recording a new one, or use another phone."
             : "Something went wrong preparing your video. Please try again.");
@@ -155,7 +155,7 @@ export function TagSetup({ tagId, hasVideo, ready }: { tagId: string; hasVideo: 
       ) : !file ? (
         <div className="rounded-2xl bg-card p-5 shadow-sm">
           <p className="font-semibold">Choose your video</p>
-          <p className="text-sm text-ink-soft">Up to {TAG_VIDEO_SECONDS} seconds. If it&apos;s longer, you&apos;ll choose which {TAG_VIDEO_SECONDS} seconds to keep.</p>
+          <p className="text-sm text-ink-soft">Up to {maxSeconds} seconds. If it&apos;s longer, you&apos;ll choose which {maxSeconds} seconds to keep.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="btn btn-primary cursor-pointer justify-center">
               🎥 Record a video
@@ -184,9 +184,9 @@ export function TagSetup({ tagId, hasVideo, ready }: { tagId: string; hasVideo: 
               className="max-h-[50vh] w-full"
             />
           </div>
-          {duration !== null && duration > TAG_VIDEO_SECONDS + 0.05 && (
+          {duration !== null && duration > maxSeconds + 0.05 && (
             <label className="mt-4 block text-sm font-semibold">
-              Choose your {TAG_VIDEO_SECONDS} seconds
+              Choose your {maxSeconds} seconds
               <input type="range" min={0} max={maxStart} step={0.1} value={start} disabled={busy}
                 onChange={(e) => { const s = Number(e.target.value); setStart(s); if (videoRef.current) videoRef.current.currentTime = s; }}
                 className="mt-2 w-full accent-[var(--accent)]" aria-label="Start of the clip" />

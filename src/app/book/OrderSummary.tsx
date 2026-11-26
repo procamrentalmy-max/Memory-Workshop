@@ -1,12 +1,14 @@
 "use client";
 
-import { DRINKS, PRICING, SESSION_HOURS, TEMPLATES, formatRM, to12h } from "@/lib/data";
-import { customPagePrice, orderTotals, pagePrice, photoCount } from "@/lib/pricing";
+import { INCLUDED_SHEETS_PER_PERSON, PRICING, formatRM, to12h } from "@/lib/data";
+import { drinkPrice, orderTotals, photoCount } from "@/lib/pricing";
 import type { Order } from "@/lib/types";
 
 export function OrderSummary({ order, children }: { order: Order; children?: React.ReactNode }) {
   const t = orderTotals(order);
   const drinkLines = Object.entries(order.drinks).filter(([, q]) => q > 0);
+  const people = order.visit?.people ?? 1;
+  const included = Math.min(order.pages.length, people * INCLUDED_SHEETS_PER_PERSON);
   return (
     <div className="relative rounded-2xl bg-card p-6 shadow-sm">
       <span className="washi -top-2 left-8 -rotate-3" style={{ ["--tape" as string]: "#7d9a7e" }} />
@@ -15,7 +17,7 @@ export function OrderSummary({ order, children }: { order: Order; children?: Rea
         {order.visit && (
           <div>
             <div className="flex justify-between gap-4">
-              <dt className="text-ink-soft">Session · {order.visit.people} × {SESSION_HOURS} hr × {formatRM(PRICING.sessionPerPersonPerHour)}</dt>
+              <dt className="text-ink-soft">Session · {order.visit.people} × {formatRM(PRICING.session)}, 1 hour</dt>
               <dd className="font-semibold">{formatRM(t.session)}</dd>
             </div>
             <p className="text-xs text-ink-soft">
@@ -27,24 +29,21 @@ export function OrderSummary({ order, children }: { order: Order; children?: Rea
         )}
         <div>
           <div className="flex justify-between gap-4">
-            <dt className="text-ink-soft">Pages · {order.pages.length}</dt>
-            <dd className="font-semibold">{formatRM(t.pages)}</dd>
+            <dt className="text-ink-soft">Photo prints · {order.pages.length} sheet{order.pages.length === 1 ? "" : "s"}</dt>
+            <dd className="font-semibold">{t.pages ? formatRM(t.pages) : order.pages.length ? "Included" : "—"}</dd>
           </div>
           <ul className="text-xs text-ink-soft">
             {order.pages.map((p) => (
-              <li key={p.id}>
-                {p.kind === "preset"
-                  ? `${TEMPLATES.find((x) => x.id === p.templateId)?.name} · ${formatRM(PRICING.perPage)}`
-                  : p.kind === "collage" || p.kind === "shapes"
-                    ? `${p.kind === "collage" ? "Photo collage" : "Photo shapes"} · ${photoCount(p)} photo${photoCount(p) === 1 ? "" : "s"} · ${formatRM(pagePrice(p))}`
-                    : `Your own design · ${formatRM(customPagePrice(p.items))}`}
-              </li>
+              <li key={p.id}>{p.kind === "collage" ? "Photo collage" : "Photo shapes"} · {photoCount(p)} photo{photoCount(p) === 1 ? "" : "s"}</li>
             ))}
+            {order.pages.length > 0 && (
+              <li>{included} included{order.pages.length > included ? `, extra sheets ${formatRM(PRICING.photoPrint)} per photo` : ""}</li>
+            )}
           </ul>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-ink-soft">Stickers &amp; stationery</dt>
-          <dd className="font-semibold text-[#3f5e41]">Free</dd>
+          <dt className="text-ink-soft">Badge, scrapbook, stationery, snacks &amp; water</dt>
+          <dd className="font-semibold text-[#3f5e41]">Included</dd>
         </div>
         {drinkLines.length > 0 && (
           <div>
@@ -54,7 +53,7 @@ export function OrderSummary({ order, children }: { order: Order; children?: Rea
             </div>
             <ul className="text-xs text-ink-soft">
               {drinkLines.map(([n, q]) => (
-                <li key={n}>{q} × {n} · {formatRM((DRINKS.find((d) => d.name === n)?.price ?? 0) * q)}</li>
+                <li key={n}>{q} × {n} · {formatRM(drinkPrice(n) * q)}</li>
               ))}
             </ul>
           </div>
@@ -64,7 +63,9 @@ export function OrderSummary({ order, children }: { order: Order; children?: Rea
           <dd className="font-display text-2xl font-semibold">{formatRM(t.total)}</dd>
         </div>
       </dl>
-      <p className="mt-2 text-xs text-ink-soft">Session time is estimated at {SESSION_HOURS} hours and charged by the hour.</p>
+      <p className="mt-2 text-xs text-ink-soft">
+        Want longer than an hour? Each extra 30 minutes is {formatRM(PRICING.extraHalfHour)}, added at the studio.
+      </p>
       {children}
     </div>
   );

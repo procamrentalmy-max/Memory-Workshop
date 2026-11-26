@@ -6,11 +6,9 @@ import { Suspense, useState } from "react";
 import { STUDIO } from "@/lib/data";
 
 const NAV = [
-  { href: "/templates", label: "Page Templates" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/collage", label: "Photo Prints" },
   { href: "/shop", label: "Shop & Café" },
-  { href: "/book?mode=custom", label: "Design Your Own" },
-  { href: "/collage", label: "Photo Collage" },
 ];
 
 /** Desktop links; the current page is highlighted. */

@@ -1,6 +1,6 @@
 import { isJpeg, readMp4Info } from "@/lib/mp4";
-import { setTagVideo, tagCodeError } from "@/lib/tags";
-import { MAX_TAG_VIDEO_BYTES, TAG_FILE_RE, TAG_VIDEO_SECONDS } from "@/lib/tagFormat";
+import { getTag, setTagVideo, tagCodeError } from "@/lib/tags";
+import { MAX_TAG_VIDEO_BYTES, TAG_FILE_RE } from "@/lib/tagFormat";
 import { tagStorage } from "@/lib/tagStorage";
 
 /** After the upload: checks the video really is a short MP4, then puts it on the tag (replacing any old one). */
@@ -21,19 +21,20 @@ export async function POST(request: Request, ctx: RouteContext<"/api/tags/[id]/s
       return Response.json({ error: "Upload failed. Please try again." }, { status: 400 });
     }
 
+    const maxSeconds = (await getTag(id))?.maxSeconds ?? 10;
     const bytes = await storage.size(video);
     const info = bytes ? readMp4Info((await storage.readStart(video, 1024 * 1024)) ?? new Uint8Array()) : null;
-    const tooLong = info?.seconds != null && info.seconds > TAG_VIDEO_SECONDS + 0.6;
+    const tooLong = info?.seconds != null && info.seconds > maxSeconds + 0.6;
     if (!bytes || bytes > MAX_TAG_VIDEO_BYTES || !info || tooLong) {
       await storage.remove([video, ...(poster ? [poster] : [])]);
-      return Response.json({ error: tooLong ? "Videos can be up to 10 seconds." : "That video couldn't be used. Please try another." }, { status: 400 });
+      return Response.json({ error: tooLong ? `This tag takes videos of up to ${maxSeconds} seconds.` : "That video couldn't be used. Please try another." }, { status: 400 });
     }
     const posterOk = poster ? isJpeg((await storage.readStart(poster, 16)) ?? new Uint8Array()) : false;
     if (poster && !posterOk) await storage.remove([poster]);
 
     await setTagVideo(id, {
       videoFile: video, posterFile: posterOk ? poster : null, bytes,
-      seconds: Math.round((info.seconds ?? TAG_VIDEO_SECONDS) * 100) / 100, width, height,
+      seconds: Math.round((info.seconds ?? maxSeconds) * 100) / 100, width, height,
     });
     return Response.json({ ok: true, url: storage.publicUrl(video) });
   } catch (e) {

@@ -43,7 +43,7 @@ async function Tag({ params, searchParams }: PageProps<"/v/[id]">) {
       <p className="mt-2 text-ink-soft">
         Put a short video on this tag. Anyone who taps it with their phone will see it, no app needed.
       </p>
-      <TagSetup tagId={id} hasVideo={!!tag.videoFile} ready={!!storage} />
+      <TagSetup tagId={id} hasVideo={!!tag.videoFile} ready={!!storage} maxSeconds={tag.maxSeconds} />
     </>
   );
 }

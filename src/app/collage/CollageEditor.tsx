@@ -472,9 +472,10 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
 
         <div className="mt-auto border-t border-line pt-3">
           <div className="flex items-baseline justify-between text-sm">
-            <span className="text-ink-soft">{leaves.length} section{leaves.length === 1 ? "" : "s"} · {filled} photo{filled === 1 ? "" : "s"} × {formatRM(PRICING.photoPrint)}</span>
-            <span className="font-display text-2xl font-semibold">{formatRM(filled * PRICING.photoPrint)}</span>
+            <span className="text-ink-soft">{leaves.length} section{leaves.length === 1 ? "" : "s"}</span>
+            <span className="font-display text-2xl font-semibold">{filled} photo{filled === 1 ? "" : "s"}</span>
           </div>
+          <p className="mt-1 text-xs text-ink-soft">One A4 sheet per person is included in the RM24 session. Extra sheets {formatRM(PRICING.photoPrint)} per photo.</p>
           {added ? (
             <div className="mt-3 rounded-xl bg-sage/15 p-3 text-sm">
               <p className="font-semibold text-[#3f5e41]">✓ Collage added to your order</p>

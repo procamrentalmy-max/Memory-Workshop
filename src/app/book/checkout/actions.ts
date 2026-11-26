@@ -1,13 +1,11 @@
 "use server";
 
-import { ARRIVAL_TIMES, DRINKS, TEMPLATES } from "@/lib/data";
+import { ARRIVAL_TIMES, DRINKS } from "@/lib/data";
 import { orderTotals } from "@/lib/pricing";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
-import { addBooking, getElementsByIds, missingPhotos } from "@/lib/store";
-import { elementBox } from "@/lib/pageSize";
-import { LAYOUT_SLOTS } from "@/components/TemplatePreview";
-import { cleanFill, cleanPhotoPage, num } from "@/lib/sanitise";
-import type { CanvasItem, Order, OrderPage, PhotoFill } from "@/lib/types";
+import { addBooking, missingPhotos } from "@/lib/store";
+import { cleanPhotoPage, num } from "@/lib/sanitise";
+import type { Order, OrderPage } from "@/lib/types";
 
 export type CheckoutState =
   | { status: "idle" }
@@ -15,8 +13,6 @@ export type CheckoutState =
   | { status: "success"; reference: string; name: string; total: number; payment: string; date: string; time: string; people: number };
 
 const PAYMENT_METHODS = { studio: "Pay at the studio" } as const;
-
-const color = (v: unknown) => (typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v) ? v : "#ffffff");
 
 function klNow() {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
@@ -35,55 +31,11 @@ async function sanitiseOrder(raw: unknown): Promise<Order | string> {
   if (new Date(`${v.date}T00:00:00Z`).getUTCDay() === 1) return "The studio is closed on Mondays.";
   const people = Math.round(num(v.people, 1, 12));
 
-  const ids = (Array.isArray(o.pages) ? o.pages : []).flatMap((p) =>
-    p?.kind === "custom" && Array.isArray(p.items) ? p.items.filter((i) => i?.type === "image").map((i) => String((i as { elementId: unknown }).elementId)) : [],
-  );
-  const elements = await getElementsByIds([...new Set(ids)].filter((id) => /^[0-9a-f-]{36}$/.test(id)));
+  // Photo pages (photo collage / photo shapes) only, rebuilt from trusted values.
   const pages: OrderPage[] = [];
-  for (const p of Array.isArray(o.pages) ? o.pages.slice(0, 100) : []) {
-    const id = String(p?.id ?? "").slice(0, 20);
-    if (p?.kind === "preset") {
-      const tpl = TEMPLATES.find((t) => t.id === p.templateId);
-      if (tpl) {
-        // Keep only photos for frames this page really has.
-        const photos: Record<string, PhotoFill> = {};
-        for (const [slot, raw] of Object.entries(p.photos ?? {})) {
-          const n = Number(slot);
-          const fill = cleanFill(raw);
-          if (Number.isInteger(n) && n >= 0 && n < LAYOUT_SLOTS[tpl.layout] && fill) photos[String(n)] = fill;
-        }
-        pages.push({ kind: "preset", id, templateId: tpl.id, ...(Object.keys(photos).length ? { photos } : {}) });
-      }
-    } else if (p?.kind === "collage" || p?.kind === "shapes") {
-      const page = cleanPhotoPage(p, id);
-      if (page) pages.push(page);
-    } else if (p?.kind === "custom" && Array.isArray(p.items)) {
-      const items: CanvasItem[] = [];
-      for (const it of p.items.slice(0, 200)) {
-        const box = { id: String(it.id).slice(0, 20), x: num(it.x, -200, 200), y: num(it.y, -200, 200), w: num(it.w, 1, 200), h: num(it.h, 1, 200) };
-        if (it.type === "image") {
-          const el = elements.find((e) => e.id === it.elementId);
-          if (!el) return `An element on one of your pages ("${String(it.name).slice(0, 40)}") is no longer available. Please remove it.`;
-          // Elements always keep their own size; only their position comes from the customer.
-          const { w, h } = elementBox(el.widthCm, el.heightCm);
-          const x = Math.min(Math.max(box.x, 0), Math.max(0, 100 - w));
-          const y = Math.min(Math.max(box.y, 0), Math.max(0, 100 - h));
-          // Photo frames: the photo window comes from the element itself; the photo only from a valid upload.
-          const photo = el.photoWindow ? cleanFill((it as { photo?: unknown }).photo) : null;
-          items.push({
-            id: box.id, x, y, w, h, type: "image", elementId: el.id, file: el.file, name: el.name, price: el.price, aspect: el.height / el.width,
-            ...(el.photoWindow ? { window: el.photoWindow } : {}),
-            ...(photo ? { photo } : {}),
-          });
-        } else if (it.type === "section") {
-          items.push({ ...box, type: "section", color: color(it.color) });
-        } else if (it.type === "text") {
-          const font = ["hand", "display", "sans"].includes(it.font) ? it.font : "hand";
-          items.push({ ...box, type: "text", text: String(it.text ?? "").slice(0, 300), color: color(it.color), size: num(it.size, 1, 20), font });
-        }
-      }
-      if (items.length) pages.push({ kind: "custom", id, items, background: color(p.background) });
-    }
+  for (const p of Array.isArray(o.pages) ? o.pages.slice(0, 50) : []) {
+    const page = cleanPhotoPage(p, String((p as { id?: unknown })?.id ?? "").slice(0, 20));
+    if (page) pages.push(page);
   }
 
   const drinks: Record<string, number> = {};

@@ -1,31 +1,11 @@
 import type { Metadata } from "next";
-import { connection } from "next/server";
-import { Suspense } from "react";
-import { getElements } from "@/lib/store";
-import { PageBuilder } from "./PageBuilder";
+import { PhotosStep } from "./PhotosStep";
 
 export const metadata: Metadata = {
   title: "Book a Session",
-  description: "Start your booking: pick ready-made scrapbook pages or design your own with drag and drop.",
+  description: "Book a 1-hour memory-making session: a scrapbook, a Memory Badge, unlimited stationery, 2 photo prints and free-flow snacks for RM24.",
 };
 
-async function Builder() {
-  await connection();
-  let elements: Awaited<ReturnType<typeof getElements>> = [];
-  let unavailable = false;
-  try {
-    elements = await getElements();
-  } catch (e) {
-    console.error(e);
-    unavailable = true;
-  }
-  return <PageBuilder elements={elements} elementsUnavailable={unavailable} />;
-}
-
-export default function PagesStep() {
-  return (
-    <Suspense fallback={<p className="text-ink-soft">Loading pages…</p>}>
-      <Builder />
-    </Suspense>
-  );
+export default function PhotosStepPage() {
+  return <PhotosStep />;
 }

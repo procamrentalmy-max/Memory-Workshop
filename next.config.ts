@@ -8,7 +8,10 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/book/pages", destination: "/book", permanent: true },
-      { source: "/create", destination: "/book?mode=custom", permanent: true },
+      // Ready-made and design-your-own pages are paused for now.
+      { source: "/create", destination: "/collage", permanent: false },
+      { source: "/templates", destination: "/collage", permanent: false },
+      { source: "/templates/:path*", destination: "/collage", permanent: false },
     ];
   },
   turbopack: {

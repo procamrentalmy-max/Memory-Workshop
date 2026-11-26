@@ -18,18 +18,20 @@ export type Tag = {
   views: number;
   lastViewedAt: string | null;
   disabled: boolean;
+  maxSeconds: number; // the longest video this tag takes: 10, 20 or 30 s
 };
 
 type TagRow = {
   id: string; setup_code: string; batch: string | null; created_at: string; video_file: string | null; poster_file: string | null;
   video_bytes: number | null; video_seconds: string | number | null; video_width: number | null; video_height: number | null;
-  video_updated_at: string | null; views: number; last_viewed_at: string | null; disabled: boolean;
+  video_updated_at: string | null; views: number; last_viewed_at: string | null; disabled: boolean; max_seconds: number;
 };
-const COLUMNS = "id,setup_code,batch,created_at,video_file,poster_file,video_bytes,video_seconds,video_width,video_height,video_updated_at,views,last_viewed_at,disabled";
+const COLUMNS = "id,setup_code,batch,created_at,video_file,poster_file,video_bytes,video_seconds,video_width,video_height,video_updated_at,views,last_viewed_at,disabled,max_seconds";
 const toTag = (r: TagRow): Tag => ({
   id: r.id, setupCode: r.setup_code, batch: r.batch, createdAt: r.created_at, videoFile: r.video_file, posterFile: r.poster_file,
   videoBytes: r.video_bytes, videoSeconds: r.video_seconds === null ? null : Number(r.video_seconds), videoWidth: r.video_width,
   videoHeight: r.video_height, videoUpdatedAt: r.video_updated_at, views: r.views, lastViewedAt: r.last_viewed_at, disabled: r.disabled,
+  maxSeconds: r.max_seconds ?? 10,
 });
 
 const pick = (alphabet: string, n: number) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => alphabet[b % alphabet.length]).join("");
@@ -59,8 +61,8 @@ export async function tagStats() {
 }
 
 /** Makes a batch of new tags (new links and setup codes) to write onto NFC tags. */
-export async function createTags(count: number, batch: string): Promise<number> {
-  const rows = Array.from({ length: count }, () => ({ id: newTagId(), setup_code: newSetupCode(), batch }));
+export async function createTags(count: number, batch: string, maxSeconds: number): Promise<number> {
+  const rows = Array.from({ length: count }, () => ({ id: newTagId(), setup_code: newSetupCode(), batch, max_seconds: maxSeconds }));
   const { error } = await db().from("tags").insert(rows);
   if (error) throw new Error(`Could not create tags: ${error.message}`);
   return rows.length;

@@ -66,8 +66,8 @@ function VisitFormInner({ order }: { order: Order }) {
         <p className="font-hand text-2xl text-accent">step two</p>
         <h1 className="font-display text-4xl font-semibold sm:text-5xl">When would you like to come in?</h1>
         <p className="mt-3 max-w-xl text-ink-soft">
-          Just pick your arrival time. Most visits take about {SESSION_HOURS} hours, at{" "}
-          {formatRM(PRICING.sessionPerPersonPerHour)} per person per hour.
+          Just pick your arrival time. A session is {SESSION_HOURS} hour, {formatRM(PRICING.session)} per person. Want longer?
+          Each extra 30 minutes is {formatRM(PRICING.extraHalfHour)}, added at the studio.
         </p>
 
         {/* People */}
@@ -136,7 +136,7 @@ function VisitFormInner({ order }: { order: Order }) {
 
         {error && <p className="mt-4 text-sm font-semibold text-accent" role="alert">{error}</p>}
 
-        <ActionBar back="/book" summary={<>Session estimate <strong className="ml-1 font-display text-xl">{formatRM(sessionEstimate(people))}</strong><span className="block text-xs text-paper/70">{people} × {SESSION_HOURS} hr</span></>}>
+        <ActionBar back="/book" summary={<>Session estimate <strong className="ml-1 font-display text-xl">{formatRM(sessionEstimate(people))}</strong><span className="block text-xs text-paper/70">{people} × {formatRM(PRICING.session)}, 1 hour</span></>}>
           <button type="submit" className={nextBtn}>
             Next<span className="hidden sm:inline">: choose a drink</span> →
           </button>

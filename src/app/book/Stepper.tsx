@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useOrder } from "./orderStore";
 
 export const STEPS = [
-  { href: "/book", label: "Choose pages" },
+  { href: "/book", label: "Photo prints" },
   { href: "/book/time", label: "Choose your time" },
   { href: "/book/drinks", label: "Choose a drink" },
   { href: "/book/checkout", label: "Details & payment" },

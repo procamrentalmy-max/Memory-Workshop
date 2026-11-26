@@ -6,7 +6,7 @@ import { CollageView } from "@/components/CollageView";
 import { ShapesView } from "@/components/ShapesView";
 import { PRICING, formatRM } from "@/lib/data";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
-import { pagePrice, photoCount } from "@/lib/pricing";
+import { photoCount } from "@/lib/pricing";
 import { notePhotos, releaseUnusedPhotos } from "../book/devicePhotos";
 import { setOrder, useOrder } from "../book/orderStore";
 import { sendToPrint, type PrintState } from "./actions";
@@ -38,7 +38,8 @@ export function PrintOrder() {
         <p className="mt-4 text-sm text-ink-soft">Your order number</p>
         <p className="font-mono text-3xl font-bold tracking-wider">{state.reference}</p>
         <p className="mt-4 text-sm">
-          Prints <strong>{formatRM(state.total)}</strong> · pay at the counter when you leave, together with your session.
+          One sheet per person is included in your session; extra sheets are {formatRM(PRICING.photoPrint)} per photo. Pay at the
+          counter when you leave, together with your session.
         </p>
         <p className="mt-2 text-xs text-ink-soft">Your photos are deleted once you&apos;ve paid.</p>
         <Link href="/collage" className="btn btn-primary mt-6">Make another photo page</Link>
@@ -57,7 +58,7 @@ export function PrintOrder() {
   }
 
   const pages = order.pages.filter((p) => isPhotoPage(p.kind));
-  const total = pages.reduce((sum, p) => sum + pagePrice(p), 0);
+  const photos = pages.reduce((sum, p) => sum + photoCount(p), 0);
   const remove = (id: string) => {
     const page = pages.find((p) => p.id === id);
     setOrder((o) => ({ ...o, pages: o.pages.filter((p) => p.id !== id) }));
@@ -85,7 +86,7 @@ export function PrintOrder() {
           <li key={p.id} className="rounded-xl border border-line bg-card p-2">
             {p.kind === "collage" ? <CollageView collage={p.collage} /> : p.kind === "shapes" ? <ShapesView sheet={p.sheet} /> : null}
             <p className="mt-2 text-sm font-semibold">{p.kind === "collage" ? "Photo collage" : "Photo shapes"}</p>
-            <p className="text-xs text-ink-soft">{photoCount(p)} photo{photoCount(p) === 1 ? "" : "s"} · {formatRM(pagePrice(p))}</p>
+            <p className="text-xs text-ink-soft">{photoCount(p)} photo{photoCount(p) === 1 ? "" : "s"}</p>
             <div className="mt-1 flex gap-3 text-xs font-semibold">
               <Link href={p.kind === "collage" ? `/collage?edit=${p.id}` : `/collage?mode=shapes&edit=${p.id}`} className="hover:underline">Edit</Link>
               <button type="button" onClick={() => remove(p.id)} className="text-accent hover:underline">Remove</button>
@@ -109,8 +110,10 @@ export function PrintOrder() {
           </label>
         </div>
         <div className="mt-4 flex items-baseline justify-between border-t border-line pt-4">
-          <span className="text-sm text-ink-soft">{pages.length} page{pages.length === 1 ? "" : "s"} · {formatRM(PRICING.photoPrint)} per photo · pay at the counter</span>
-          <span className="font-display text-2xl font-semibold">{formatRM(total)}</span>
+          <span className="text-sm text-ink-soft">
+            One sheet per person is included in your session. Extra sheets {formatRM(PRICING.photoPrint)} per photo, paid at the counter.
+          </span>
+          <span className="shrink-0 font-display text-2xl font-semibold">{pages.length} sheet{pages.length === 1 ? "" : "s"} · {photos} photo{photos === 1 ? "" : "s"}</span>
         </div>
         {state.status === "error" && <p className="mt-3 text-sm font-semibold text-accent" role="alert">{state.message}</p>}
         <button type="submit" disabled={pending} className="btn btn-primary mt-4 w-full disabled:opacity-60">

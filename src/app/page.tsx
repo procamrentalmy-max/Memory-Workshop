@@ -1,13 +1,11 @@
 import Link from "next/link";
-import { FAQS, PRICING, TEMPLATES, formatRM } from "@/lib/data";
-import { TemplateCard } from "@/components/TemplateCard";
-import { TemplatePreview } from "@/components/TemplatePreview";
+import { BADGES, DRINKS, FAQS, PRICING, SESSION_INCLUDES, formatRM } from "@/lib/data";
 
 const STEPS = [
-  { n: "01", title: "Choose your pages", text: "Pick from our ready-made pages, or design your own with drag and drop." },
+  { n: "01", title: "Design your photo prints", text: "Make your two A5 photo prints on our website, or do it at the studio." },
   { n: "02", title: "Choose your time", text: "Choose the day and time you'd like to come in." },
-  { n: "03", title: "Choose your drink", text: "Pick a coffee or something refreshing, ready for when you arrive." },
-  { n: "04", title: "Excited to see you!", text: "Bring your photos and your favourite people. We'll have everything ready." },
+  { n: "03", title: "Choose your drink", text: "Add a coffee to your session for less, ready for when you arrive." },
+  { n: "04", title: "Excited to see you!", text: "Bring your favourite people. We'll have everything ready." },
 ];
 
 const AUDIENCES = [
@@ -16,12 +14,10 @@ const AUDIENCES = [
   { title: "Families", text: "From baby's firsts to grandparents' stories, an afternoon that every generation can enjoy together.", tape: "#7d9a7e" },
 ];
 
-export default function Home() {
-  const featured = ["passport-stamps", "our-first-date", "photobooth-strip", "family-tree"]
-    .map((id) => TEMPLATES.find((t) => t.id === id)!)
-    .filter(Boolean);
-  const heroPages = ["postcard-wall", "heart-popup", "concert-night"].map((id) => TEMPLATES.find((t) => t.id === id)!);
+const cheapestDrink = Math.min(...DRINKS.map((d) => d.sessionPrice));
+const cheapestNfc = Math.min(...BADGES.filter((b) => b.name.includes("NFC")).map((b) => b.price));
 
+export default function Home() {
   return (
     <>
       {/* Hero */}
@@ -29,46 +25,53 @@ export default function Home() {
         <div>
           <p className="font-hand text-2xl text-accent">a hands-on memory creation studio</p>
           <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-sage/20 px-3 py-1 text-sm font-semibold text-[#3f5e41] ring-1 ring-sage/40">
-            <span aria-hidden>✂</span> Free stickers &amp; stationery with every session
+            <span aria-hidden>✂</span> Unlimited stationery, snacks &amp; water included
           </p>
           <h1 className="mt-2 font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
             Turn your favourite moments into keepsakes you made yourself.
           </h1>
           <p className="mt-5 max-w-lg text-lg text-ink-soft">
-            Bring your photos, travel souvenirs and ticket stubs. Choose a ready-made page or design your
-            own, and leave with something to keep forever.
+            One hour, a textured scrapbook to fill, a Memory Badge, two photo prints and everything you need to decorate,
+            for {formatRM(PRICING.session)} a person.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/book" className="btn btn-primary">Book a Session</Link>
-            <Link href="/templates" className="btn btn-ghost">Browse Pages</Link>
+            <Link href="/collage" className="btn btn-ghost">Design your photo prints</Link>
           </div>
           <dl className="mt-10 flex flex-wrap gap-x-10 gap-y-4">
             <div>
-              <dt className="text-sm text-ink-soft">Studio session</dt>
-              <dd className="font-display text-2xl font-semibold">{formatRM(PRICING.sessionPerPersonPerHour)}<span className="text-base font-normal text-ink-soft"> /person/hr</span></dd>
+              <dt className="text-sm text-ink-soft">Session, 1 hour</dt>
+              <dd className="font-display text-2xl font-semibold">{formatRM(PRICING.session)}<span className="text-base font-normal text-ink-soft"> /person</span></dd>
             </div>
             <div>
-              <dt className="text-sm text-ink-soft">Ready-made pages</dt>
-              <dd className="font-display text-2xl font-semibold">{formatRM(PRICING.perPage)}<span className="text-base font-normal text-ink-soft"> or design your own</span></dd>
+              <dt className="text-sm text-ink-soft">Extra 30 minutes</dt>
+              <dd className="font-display text-2xl font-semibold">{formatRM(PRICING.extraHalfHour)}</dd>
             </div>
             <div>
-              <dt className="text-sm text-ink-soft">Stickers &amp; stationery</dt>
-              <dd className="font-display text-2xl font-semibold text-[#3f5e41]">Free</dd>
+              <dt className="text-sm text-ink-soft">Snacks &amp; water</dt>
+              <dd className="font-display text-2xl font-semibold text-[#3f5e41]">Free flow</dd>
             </div>
           </dl>
         </div>
 
-        <div className="relative mx-auto h-[340px] w-full max-w-[340px] sm:h-[480px] sm:max-w-md">
-          <div className="absolute left-0 top-6 w-[58%] -rotate-6 rounded-xl bg-white p-2 shadow-lg">
-            <TemplatePreview template={heroPages[0]} />
+        {/* What's included, as a ticket */}
+        <div className="relative mx-auto w-full max-w-sm">
+          <div className="relative rotate-[-2deg] rounded-2xl bg-card p-7 pt-9 shadow-xl">
+            <span className="washi -top-2 left-8 -rotate-3" style={{ ["--tape" as string]: "#c4553a" }} />
+            <span className="washi -top-2 right-6 rotate-6" style={{ ["--tape" as string]: "#7d9a7e" }} />
+            <p className="font-hand text-2xl text-accent">your session</p>
+            <p className="font-display text-5xl font-semibold">{formatRM(PRICING.session)}</p>
+            <p className="text-sm text-ink-soft">per person · 1 hour</p>
+            <ul className="mt-5 space-y-2.5 border-t border-dashed border-line pt-5">
+              {SESSION_INCLUDES.map((x) => (
+                <li key={x} className="flex gap-2.5"><span className="text-[#3f5e41]" aria-hidden>✓</span><span>{x}</span></li>
+              ))}
+            </ul>
+            <p className="mt-5 border-t border-dashed border-line pt-4 text-sm text-ink-soft">
+              Staying longer? {formatRM(PRICING.extraHalfHour)} for every extra 30 minutes.
+            </p>
           </div>
-          <div className="absolute right-0 top-0 w-[52%] rotate-[5deg] rounded-xl bg-white p-2 shadow-lg">
-            <TemplatePreview template={heroPages[1]} />
-          </div>
-          <div className="absolute bottom-0 left-[22%] w-[52%] rotate-[-1deg] rounded-xl bg-white p-2 shadow-xl">
-            <TemplatePreview template={heroPages[2]} />
-          </div>
-          <p className="absolute -bottom-2 right-0 rotate-[-4deg] font-hand text-2xl text-ink-soft">made by you ✂</p>
+          <p className="absolute -bottom-6 right-2 rotate-[-4deg] font-hand text-2xl text-ink-soft">made by you ✂</p>
         </div>
       </section>
 
@@ -89,28 +92,50 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured templates */}
+      {/* Photo prints */}
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="grid items-center gap-10 md:grid-cols-[1fr_auto]">
           <div>
-            <h2 className="font-display text-3xl font-semibold sm:text-4xl">Pages our guests love</h2>
-            <p className="mt-2 text-ink-soft">
-              Pop-ups, pockets, fold-outs and flaps, each one {formatRM(PRICING.perPage)} with everything included.
+            <h2 className="font-display text-3xl font-semibold sm:text-4xl">Your photos, printed</h2>
+            <p className="mt-3 max-w-2xl text-ink-soft">
+              Every session includes two A5 photo prints. Design the sheet yourself on our website: split it in two, make a
+              grid, or draw circles, hearts and stars and fill them with your photos. We print it, you stick it in.
+            </p>
+            <Link href="/collage" className="btn btn-primary mt-6">Design your photo prints</Link>
+          </div>
+          <div className="flex justify-center gap-4" aria-hidden>
+            <div className="aspect-[210/297] w-28 -rotate-3 rounded-md bg-white p-1.5 shadow-lg sm:w-32">
+              <div className="grid h-full grid-rows-2 gap-1">
+                <div className="rounded-sm bg-[linear-gradient(160deg,#9cc7d8,#f2d4a5)]" />
+                <div className="rounded-sm bg-[linear-gradient(160deg,#e5989b,#6d6875)]" />
+              </div>
+            </div>
+            <div className="relative aspect-[210/297] w-28 rotate-3 rounded-md bg-white shadow-lg sm:w-32">
+              <span className="absolute left-[18%] top-[12%] h-[34%] w-[64%] rounded-full bg-[linear-gradient(160deg,#7d9a7e,#e0a93b)]" />
+              <span className="absolute bottom-[10%] left-[14%] h-[30%] w-[44%] rounded-xl bg-[linear-gradient(160deg,#c4553a,#e0a93b)]" />
+              <span className="absolute bottom-[14%] right-[10%] h-[22%] w-[30%] rotate-12 bg-[linear-gradient(160deg,#3d5a80,#98c1d9)] [clip-path:polygon(50%_0,61%_35%,98%_35%,68%_57%,79%_91%,50%_70%,21%_91%,32%_57%,2%_35%,39%_35%)]" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* NFC badges */}
+      <section className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="cut-line grid gap-6 rounded-2xl bg-card p-8 md:grid-cols-[1fr_auto] md:items-center md:p-10">
+          <div>
+            <span className="rounded-full bg-sage/20 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#3f5e41]">New</span>
+            <h2 className="mt-3 font-display text-2xl font-semibold sm:text-3xl">Badges that play your video</h2>
+            <p className="mt-2 max-w-2xl text-ink-soft">
+              Add a badge with a tiny NFC tag inside. Tap it with any phone to play your music or a video of up to 30 seconds,
+              no app needed. From {formatRM(cheapestNfc)}.
             </p>
           </div>
-          <Link href="/templates" className="font-semibold text-accent hover:underline">
-            See all {TEMPLATES.length} pages →
-          </Link>
-        </div>
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-10 sm:gap-6 lg:grid-cols-4">
-          {featured.map((t) => (
-            <TemplateCard key={t.id} template={t} />
-          ))}
+          <Link href="/shop" className="btn btn-ghost">See badges</Link>
         </div>
       </section>
 
       {/* Who it's for */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6">
+      <section className="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
         <h2 className="font-display text-3xl font-semibold sm:text-4xl">Made for making together</h2>
         <div className="mt-10 grid gap-8 md:grid-cols-3">
           {AUDIENCES.map((a, i) => (
@@ -133,34 +158,19 @@ export default function Home() {
             <p className="font-hand text-2xl text-mustard">while you create…</p>
             <h2 className="mt-1 font-display text-3xl font-semibold">Shop &amp; café</h2>
             <p className="mt-3 text-paper/80">
-              Stickers, washi tape and stationery are free to use while you create. Take your pages home in a
-              notebook or scrapbook album, and enjoy a fresh coffee while you work.
+              Papers, stickers, ribbons and cutters are yours to use, with free-flow snacks and water. Add a coffee to your
+              session from {formatRM(cheapestDrink)}, try a pastry, and take home a badge or two.
             </p>
-            <Link href="/shop" className="btn mt-6 bg-paper text-ink hover:bg-white">Visit the shop</Link>
+            <Link href="/shop" className="btn mt-6 bg-paper text-ink hover:bg-white">Visit the shop &amp; café</Link>
           </div>
           <ul className="grid grid-cols-2 gap-3 text-sm">
-            {[["Stickers", true], ["Washi tape", true], ["Stationery", true], ["Notebooks", false], ["Scrapbook albums", false], ["Coffee & drinks", false]].map(([x, free]) => (
-              <li key={String(x)} className={`flex items-center justify-between gap-2 rounded-lg border px-4 py-3 ${free ? "border-mustard/60" : "border-paper/20"}`}>
+            {([["Stickers & ribbons", true], ["Papers & cutters", true], ["Snacks & water", true], ["Coffee & matcha", false], ["Pastries", false], ["Badges & NFC", false]] as const).map(([x, free]) => (
+              <li key={x} className={`flex items-center justify-between gap-2 rounded-lg border px-4 py-3 ${free ? "border-mustard/60" : "border-paper/20"}`}>
                 {x}
                 {free && <span className="rounded-full bg-mustard px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink">Free</span>}
               </li>
             ))}
           </ul>
-        </div>
-      </section>
-
-      {/* Design your own */}
-      <section className="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
-        <div className="cut-line grid gap-6 rounded-2xl bg-card p-8 md:grid-cols-[1fr_auto] md:items-center md:p-10">
-          <div>
-            <span className="rounded-full bg-sage/20 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#3f5e41]">New</span>
-            <h2 className="mt-3 font-display text-2xl font-semibold sm:text-3xl">Design your own page</h2>
-            <p className="mt-2 max-w-2xl text-ink-soft">
-              Prefer your own layout? Drag and drop elements and photo frames onto a blank page, add coloured
-              sections and text boxes for free, and we&apos;ll have it ready for your visit.
-            </p>
-          </div>
-          <Link href="/book?mode=custom" className="btn btn-ghost">Start designing</Link>
         </div>
       </section>
 

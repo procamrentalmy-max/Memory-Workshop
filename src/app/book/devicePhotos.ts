@@ -8,7 +8,6 @@ import { getOrder } from "./orderStore";
 import { releasePhotos } from "./photos";
 
 // Unfinished work kept in this browser.
-export const DESIGN_DRAFT_KEY = "pm-draft-v1"; // drag & drop page
 export const COLLAGE_DRAFT_KEY = "pm-collage-v1"; // photo collage (split the page)
 export const SHAPES_DRAFT_KEY = "pm-shapes-v1"; // photo shapes
 
@@ -44,15 +43,9 @@ export function photoDraftStarted(mode: "split" | "shapes"): boolean {
   return Array.isArray(shapes) && shapes.length > 0;
 }
 
-/** Photos on all unsaved work in this browser: the drag & drop page, the photo collage and photo shapes. */
+/** Photos on all unsaved work in this browser: the photo collage and photo shapes pages. */
 export function draftPhotoFiles(): string[] {
-  const files: string[] = [];
-  try {
-    const draft = read<{ items?: [] }>(DESIGN_DRAFT_KEY);
-    files.push(...orderPhotoFiles({ visit: null, drinks: {}, pages: [{ kind: "custom", id: "draft", items: draft?.items ?? [], background: "" }] }));
-  } catch { /* ignore */ }
-  files.push(...photoDraftFiles("split"), ...photoDraftFiles("shapes"));
-  return files;
+  return [...photoDraftFiles("split"), ...photoDraftFiles("shapes")];
 }
 
 /** Every photo this device still uses: its order and its unfinished pages. */

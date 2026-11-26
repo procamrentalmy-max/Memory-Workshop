@@ -13,12 +13,12 @@ export default function CollagePage() {
   return (
     <div className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
       <PhotoKeepAlive />
-      <p className="font-hand text-2xl text-accent">print your photos</p>
+      <p className="font-hand text-2xl text-accent">design your photo prints</p>
       <h1 className="font-display text-4xl font-semibold sm:text-5xl">Photo collage</h1>
       <p className="mt-2 max-w-2xl text-ink-soft">
-        Split an A4 sheet however you like (two A5 halves, a grid, or your own lines), or draw shapes on a blank sheet:
-        circles, hearts, stars or your own outline. Then fill each one with a photo cropped to fit.{" "}
-        <strong className="text-ink">{formatRM(PRICING.photoPrint)} per photo printed.</strong>
+        Your session includes <strong className="text-ink">two A5 photo prints</strong>: one A4 sheet per person. Split it in
+        two (or into any layout), or draw shapes on a blank sheet: circles, hearts, stars or your own outline. Then fill
+        each one with a photo cropped to fit. Extra sheets are {formatRM(PRICING.photoPrint)} per photo.
       </p>
       <div className="mt-6">
         <Suspense fallback={<p className="text-ink-soft">Loading…</p>}>
