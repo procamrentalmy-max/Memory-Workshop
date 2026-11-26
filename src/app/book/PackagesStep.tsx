@@ -21,8 +21,9 @@ export function PackagesStep() {
   const change = (id: string, delta: number) =>
     setOrder((o) => {
       const packages = { ...(o.packages ?? {}) };
-      const total = Object.values(packages).reduce((a, b) => a + b, 0);
-      const n = Math.max(0, Math.min(12, (packages[id] ?? 0) + (delta > 0 && total >= 12 ? 0 : delta)));
+      const addOn = PACKAGES.find((p) => p.id === id)?.addOn;
+      const full = !addOn && peopleCount({ packages }) >= 12; // up to 12 people
+      const n = Math.max(0, Math.min(12, (packages[id] ?? 0) + (delta > 0 && full ? 0 : delta)));
       if (n) packages[id] = n;
       else delete packages[id];
       return { ...o, packages };
@@ -45,27 +46,54 @@ export function PackagesStep() {
         <p className="mt-3 max-w-2xl text-ink-soft">One package per person. {FREE_PERKS} {EXTRA_TIME_RULE}</p>
 
         <ul className="mt-8 grid gap-4 sm:grid-cols-2">
-          {PACKAGES.map((p) => (
-            <li key={p.id} className={`flex flex-col rounded-2xl border bg-card p-5 ${qty(p.id) ? "border-accent" : "border-line"}`}>
-              <div className="flex items-baseline justify-between gap-3">
-                <h2 className="font-display text-xl font-semibold">{p.name}</h2>
-                <span className="font-display text-2xl font-semibold">{formatRM(p.price)}</span>
-              </div>
-              <ul className="mt-2 flex-1 space-y-1 text-sm">
-                {p.includes.map((x) => (
-                  <li key={x} className="flex gap-2"><span className="text-[#3f5e41]" aria-hidden>✓</span>{x}</li>
-                ))}
-              </ul>
-              {(p.typical || p.note) && <p className="mt-2 text-xs text-ink-soft">{p.typical ?? p.note}</p>}
-              <div className="mt-4 flex items-center justify-between gap-3">
-                <span className="text-xs text-ink-soft">{qty(p.id) ? `${qty(p.id)} ${qty(p.id) === 1 ? "person" : "people"}` : "per person"}</span>
-                <div className="flex items-center rounded-full border border-line">
-                  <button type="button" onClick={() => change(p.id, -1)} aria-label={`One less ${p.name}`} disabled={!qty(p.id)} className="h-10 w-10 text-lg disabled:opacity-30">−</button>
-                  <span className="w-6 text-center font-semibold" aria-live="polite">{qty(p.id)}</span>
-                  <button type="button" onClick={() => change(p.id, 1)} aria-label={`One more ${p.name}`} className="h-10 w-10 text-lg">+</button>
+          {PACKAGES.filter((p) => !p.addOn).map((p) => (
+              <li key={p.id} className={`flex flex-col rounded-2xl border bg-card p-5 ${qty(p.id) ? "border-accent" : "border-line"}`}>
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3 className="font-display text-xl font-semibold">{p.name}</h3>
+                  <span className="font-display text-2xl font-semibold">{formatRM(p.price)}</span>
                 </div>
-              </div>
-            </li>
+                <ul className="mt-2 flex-1 space-y-1 text-sm">
+                  {p.includes.map((x) => (
+                    <li key={x} className="flex gap-2"><span className="text-[#3f5e41]" aria-hidden>✓</span>{x}</li>
+                  ))}
+                </ul>
+                {(p.typical || p.note) && <p className="mt-2 text-xs text-ink-soft">{p.typical ?? p.note}</p>}
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <span className="text-xs text-ink-soft">{qty(p.id) ? `${qty(p.id)} ${p.addOn ? "" : qty(p.id) === 1 ? "person" : "people"}` : p.addOn ? "each" : "per person"}</span>
+                  <div className="flex items-center rounded-full border border-line">
+                    <button type="button" onClick={() => change(p.id, -1)} aria-label={`One less ${p.name}`} disabled={!qty(p.id)} className="h-10 w-10 text-lg disabled:opacity-30">−</button>
+                    <span className="w-6 text-center font-semibold" aria-live="polite">{qty(p.id)}</span>
+                    <button type="button" onClick={() => change(p.id, 1)} aria-label={`One more ${p.name}`} className="h-10 w-10 text-lg">+</button>
+                  </div>
+                </div>
+              </li>
+          ))}
+        </ul>
+
+        <h2 className="mt-10 font-display text-2xl font-semibold">Add a badge workshop</h2>
+        <p className="text-sm text-ink-soft">Taken with a package above, which gives you your studio time.</p>
+        <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+          {PACKAGES.filter((p) => p.addOn).map((p) => (
+              <li key={p.id} className={`flex flex-col rounded-2xl border bg-card p-5 ${qty(p.id) ? "border-accent" : "border-line"}`}>
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3 className="font-display text-xl font-semibold">{p.name}</h3>
+                  <span className="font-display text-2xl font-semibold">{formatRM(p.price)}</span>
+                </div>
+                <ul className="mt-2 flex-1 space-y-1 text-sm">
+                  {p.includes.map((x) => (
+                    <li key={x} className="flex gap-2"><span className="text-[#3f5e41]" aria-hidden>✓</span>{x}</li>
+                  ))}
+                </ul>
+                {(p.typical || p.note) && <p className="mt-2 text-xs text-ink-soft">{p.typical ?? p.note}</p>}
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <span className="text-xs text-ink-soft">{qty(p.id) ? `${qty(p.id)} ${p.addOn ? "" : qty(p.id) === 1 ? "person" : "people"}` : p.addOn ? "each" : "per person"}</span>
+                  <div className="flex items-center rounded-full border border-line">
+                    <button type="button" onClick={() => change(p.id, -1)} aria-label={`One less ${p.name}`} disabled={!qty(p.id)} className="h-10 w-10 text-lg disabled:opacity-30">−</button>
+                    <span className="w-6 text-center font-semibold" aria-live="polite">{qty(p.id)}</span>
+                    <button type="button" onClick={() => change(p.id, 1)} aria-label={`One more ${p.name}`} className="h-10 w-10 text-lg">+</button>
+                  </div>
+                </div>
+              </li>
           ))}
         </ul>
 

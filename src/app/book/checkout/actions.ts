@@ -1,7 +1,7 @@
 "use server";
 
 import { ARRIVAL_TIMES, DRINKS, PACKAGE_IDS } from "@/lib/data";
-import { orderTotals } from "@/lib/pricing";
+import { orderTotals, peopleCount } from "@/lib/pricing";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { addBooking, missingPhotos } from "@/lib/store";
 import { cleanPhotoPage, num } from "@/lib/sanitise";
@@ -35,8 +35,8 @@ async function sanitiseOrder(raw: unknown): Promise<Order | string> {
     const n = Math.round(num(q, 0, 12));
     if (n > 0 && PACKAGE_IDS.includes(id as never)) packages[id] = n;
   }
-  const people = Object.values(packages).reduce((a, b) => a + b, 0);
-  if (people < 1) return "Please choose at least one package.";
+  const people = peopleCount({ packages });
+  if (people < 1) return "Please choose a package with studio time (the Badge workshop is added to one).";
   if (people > 12) return "For more than 12 people, please email us and we'll set it up.";
 
   // Photo pages (photo collage / photo shapes) only, rebuilt from trusted values.

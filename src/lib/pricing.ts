@@ -11,8 +11,9 @@ export function orderPackages(order: Pick<Order, "packages">) {
   });
 }
 
-/** One package per person. */
-export const peopleCount = (order: Pick<Order, "packages">) => orderPackages(order).reduce((n, [, q]) => n + q, 0);
+/** One studio-time package per person (add-ons such as the Badge workshop don't count). */
+export const peopleCount = (order: Pick<Order, "packages">) =>
+  orderPackages(order).reduce((n, [p, q]) => n + (p.addOn ? 0 : q), 0);
 
 export const packagesTotal = (order: Pick<Order, "packages">) => orderPackages(order).reduce((sum, [p, q]) => sum + p.price * q, 0);
 

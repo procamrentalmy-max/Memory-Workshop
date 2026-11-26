@@ -27,6 +27,7 @@ export type Package = {
   sheets: number; // A4 photo sheets included (2 A5 prints = 1 sheet)
   typical?: string; // how long most guests take
   note?: string;
+  addOn?: boolean; // taken with a studio-time package (doesn't count as a person)
 };
 
 /** Workshop packages, one per person. */
@@ -42,9 +43,9 @@ export const PACKAGES: Package[] = [
     includes: ["1 hour in the studio", "1 NFC badge", "2 A5 photo prints and 1 A4 print", "15-page scrapbook"],
   },
   {
-    id: "badge", name: "Badge workshop", price: 15, sheets: 0,
+    id: "badge", name: "Badge workshop", price: 15, sheets: 0, addOn: true,
     includes: ["Make your own badge", "1 NFC tag free, with a video of up to 30 seconds"],
-    note: "Studio time is not included and is charged separately. More NFC badges at the usual badge prices.",
+    note: "Studio time is extra: add Basic – 30 minutes (RM8) or Basic – 1 hour (RM14). More NFC badges at the usual badge prices.",
   },
 ];
 export const PACKAGE_IDS = PACKAGES.map((p) => p.id);
@@ -54,7 +55,7 @@ export const packageById = (id: string) => PACKAGES.find((p) => p.id === id);
 export const SESSION_HOURS = 1;
 
 /** Extra time, in plain words. */
-export const EXTRA_TIME_RULE = `After a ${PRICING.graceMinutes}-minute grace period, extra time is RM${PRICING.extraHalfHour} for every 30 minutes.`;
+export const EXTRA_TIME_RULE = `Staying past your hour? Each extra 30 minutes is RM${PRICING.extraHalfHour}, after a ${PRICING.graceMinutes}-minute grace period.`;
 
 /** Seating capacity. Set once the studio layout is known; null = no limit enforced yet. */
 export const SEATING: { seats: number | null } = { seats: null };
@@ -138,11 +139,11 @@ export const SEED_COUPON = "Every drink at the regular price comes with a seed p
 export const FAQS = [
   {
     q: "Which package should I choose?",
-    a: "Basic (30 minutes for RM8, or 1 hour for RM14) is studio time with our shared tools and stationery. Memory Maker (RM21) adds an NFC badge and two A5 photo prints. Complete Memory (RM35) adds an A4 print and a 15-page scrapbook too. Just want a badge? The Badge workshop is RM15 with one NFC tag free (a video of up to 30 seconds); studio time is charged separately.",
+    a: "Basic (30 minutes for RM8, or 1 hour for RM14) is studio time with our shared tools and stationery. Memory Maker (RM21) adds an NFC badge and two A5 photo prints. Complete Memory (RM35) adds an A4 print and a 15-page scrapbook too. Want to make a badge? Add the Badge workshop (RM15, one NFC tag free with a video of up to 30 seconds) to a Basic package for your studio time.",
   },
   {
     q: "How does extra time work?",
-    a: `Packages include 1 hour (or 30 minutes for Basic – 30 minutes). ${EXTRA_TIME_RULE} Most Memory Maker guests take 1.5–2 hours, and Complete Memory 2–2.5 hours.`,
+    a: `Packages include 1 hour (or 30 minutes for Basic – 30 minutes). After your hour, each extra 30 minutes is RM${PRICING.extraHalfHour}, with a ${PRICING.graceMinutes}-minute grace period. Most Memory Maker guests take 1.5–2 hours, and Complete Memory 2–2.5 hours.`,
   },
   {
     q: "Do I need to be good at art or crafts?",
