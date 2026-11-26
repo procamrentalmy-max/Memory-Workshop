@@ -13,6 +13,7 @@ import { PRICING, formatRM } from "@/lib/data";
 import type { Order, PhotoFill } from "@/lib/types";
 import { PhotoEditor } from "../book/PhotoEditor";
 import { COLLAGE_DRAFT_KEY, discardPhotoDraft, photoDraftStarted, releaseUnusedPhotos, usePhotoCleanup } from "../book/devicePhotos";
+import { enterStudioMode, refreshStudioMode, useStudioCode } from "../print/studioMode";
 import { newId, setOrder, useOrder } from "../book/orderStore";
 import { OrientationToggle } from "./OrientationToggle";
 import { ShapesEditor } from "./ShapesEditor";
@@ -50,6 +51,16 @@ export function CollageEditor() {
   // Already making the other kind of page on this device? Carry on with that one.
   const mode = order && !editId && !photoDraftStarted(requested) && photoDraftStarted(other) ? other : requested;
   const label = (m: "split" | "shapes") => (m === "split" ? "split-page collage" : "photo shapes page");
+  const studio = useStudioCode();
+
+  // The QR code on the studio's tables opens /collage?studio=CODE: switch this device to "at the studio".
+  const studioParam = params.get("studio");
+  useEffect(() => {
+    if (studioParam) {
+      enterStudioMode(studioParam);
+      router.replace(requested === "shapes" ? "/collage?mode=shapes" : "/collage", { scroll: false });
+    } else refreshStudioMode();
+  }, [studioParam, requested, router]);
 
   function switchTo(target: "split" | "shapes") {
     if (target === mode && !editId) return;
@@ -74,6 +85,15 @@ export function CollageEditor() {
           </button>
         ))}
       </nav>
+      {studio && (
+        <p className="mb-4 rounded-xl bg-sage/15 px-4 py-3 text-sm" role="status">
+          <strong>You&apos;re at the studio.</strong> Make your photo pages, add them to your order, then send them to print.
+          You&apos;ll pay at the counter.
+          {!!order?.pages.some((p) => p.kind === "collage" || p.kind === "shapes") && (
+            <> <Link href="/print" className="font-semibold text-accent underline">Send to print →</Link></>
+          )}
+        </p>
+      )}
       {mode !== requested && (
         <p className="mb-4 rounded-xl bg-mustard/15 px-4 py-3 text-sm" role="status">
           You&apos;re in the middle of a {label(mode)}. Add it to your order (or start over) before making a different one.
@@ -91,6 +111,7 @@ export function CollageEditor() {
 }
 
 function Editor({ order, editId }: { order: Order; editId: string | null }) {
+  const studio = useStudioCode(); // at the studio: pages go straight to print
   const router = useRouter();
   const [draft, setDraftState] = useState<Draft>(() => {
     const page = editId ? order.pages.find((p) => p.id === editId && p.kind === "collage") : null;
@@ -299,7 +320,7 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
     }));
     if (draft.editingId) {
       releaseUnusedPhotos();
-      return router.push("/book");
+      return router.push(studio ? "/print" : "/book");
     }
     setAdded(true);
     history.current = [];
@@ -458,7 +479,11 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
             <div className="mt-3 rounded-xl bg-sage/15 p-3 text-sm">
               <p className="font-semibold text-[#3f5e41]">✓ Collage added to your order</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                <Link href="/book/time" className="btn btn-primary !px-4 !py-2 text-sm">Next: choose your time →</Link>
+                {studio ? (
+                  <Link href="/print" className="btn btn-primary !px-4 !py-2 text-sm">Send to print →</Link>
+                ) : (
+                  <Link href="/book/time" className="btn btn-primary !px-4 !py-2 text-sm">Next: choose your time →</Link>
+                )}
                 <button type="button" onClick={() => setAdded(false)} className="btn btn-ghost !px-4 !py-2 text-sm">Make another</button>
               </div>
             </div>
@@ -469,13 +494,13 @@ function Editor({ order, editId }: { order: Order; editId: string | null }) {
               </button>
               {filled === 0 && <p className="mt-1 text-center text-xs text-ink-soft">Add at least one photo first.</p>}
               {draft.editingId && (
-                <Link href="/book" className="mt-2 block text-center text-sm text-ink-soft hover:text-accent">Cancel editing</Link>
+                <Link href={studio ? "/print" : "/book"} className="mt-2 block text-center text-sm text-ink-soft hover:text-accent">Cancel editing</Link>
               )}
             </>
           )}
           {order.pages.length > 0 && !added && (
             <p className="mt-3 text-center text-xs text-ink-soft">
-              {order.pages.length} page{order.pages.length === 1 ? "" : "s"} in your order · <Link href="/book" className="underline">view</Link>
+              {order.pages.length} page{order.pages.length === 1 ? "" : "s"} in your order · <Link href={studio ? "/print" : "/book"} className="underline">{studio ? "send to print" : "view"}</Link>
             </p>
           )}
         </div>

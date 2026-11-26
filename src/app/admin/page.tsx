@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { connection } from "next/server";
+import QRCode from "qrcode";
 import { Suspense } from "react";
 import { TEMPLATES, formatRM, to12h } from "@/lib/data";
 import { PAGE, sizeLabel } from "@/lib/pageSize";
 import { layout } from "@/lib/collage";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
-import { PHOTO_KEEP_DAYS, getBookings, getCafeMenu, getElements, getPhotoCleanupReport } from "@/lib/store";
+import { PHOTO_KEEP_DAYS, getBookings, getCafeMenu, getElements, getPhotoCleanupReport, getStudioCode } from "@/lib/store";
 import { elementSrc, siteFileSrc } from "@/lib/types";
-import { removeElement, saveElement } from "./actions";
+import { changeStudioCode, removeElement, saveElement } from "./actions";
 import { MenuUploader } from "./MenuUploader";
 import { PhotoCleanupButton } from "./PhotoCleanupButton";
 import { UploadForm } from "./UploadForm";
@@ -108,6 +110,33 @@ async function PhotoCleanup() {
   );
 }
 
+/** The QR code for the studio's tables: opens the photo pages in "at the studio" mode. */
+async function StudioQr() {
+  await connection();
+  const code = await getStudioCode();
+  const h = await headers();
+  const base = process.env.NEXT_PUBLIC_SITE_URL || `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
+  const url = `${base.replace(/\/$/, "")}/collage?studio=${code}`;
+  const svg = await QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#2a2420", light: "#ffffff" } });
+  return (
+    <div className="mt-4 flex flex-wrap items-start gap-6 rounded-xl border border-line bg-card p-4">
+      <div className="w-44 shrink-0 [&>svg]:h-auto [&>svg]:w-full" role="img" aria-label="QR code for the studio's tables" dangerouslySetInnerHTML={{ __html: svg }} />
+      <div className="min-w-0 flex-1 text-sm">
+        <p className="font-semibold">Scan to make a photo page</p>
+        <p className="mt-1 break-all font-mono text-xs text-ink-soft">{url}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <a download="studio-qr-code.svg" href={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`} className="btn btn-primary !px-4 !py-2 text-sm">
+            Download QR code
+          </a>
+          <form action={changeStudioCode}>
+            <button className="text-xs font-semibold text-accent hover:underline">Change code (old QR codes stop working)</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 async function BookingList() {
   await connection();
   const bookings = await getBookings();
@@ -129,8 +158,11 @@ async function BookingList() {
                 {b.reference}
                 <span className="mt-1 block font-sans text-[11px] text-ink-soft">{b.settledAt ? "Settled" : b.printedAt ? "Printed" : "Open"}</span>
               </td>
-              <td className="px-3 py-2">{b.order.visit?.date}<br />{b.order.visit && to12h(b.order.visit.time)}</td>
-              <td className="px-3 py-2">{b.order.visit?.people}</td>
+              <td className="px-3 py-2">
+                {b.walkIn && <span className="block text-xs font-bold text-accent">In store{b.tableLabel ? ` · Table ${b.tableLabel}` : ""}</span>}
+                {b.visitDate}<br />{b.arrivalTime && to12h(b.arrivalTime)}
+              </td>
+              <td className="px-3 py-2">{b.walkIn ? "—" : b.order.visit?.people}</td>
               <td className="px-3 py-2">{b.name}<br /><span className="text-xs text-ink-soft">{b.email} · {b.phone}</span></td>
               <td className="px-3 py-2">
                 {b.order.pages.map((p) =>
@@ -194,6 +226,16 @@ export default function AdminPage() {
           Shown on the Shop &amp; Café page as a &ldquo;View our café menu&rdquo; button. Uploading a new one replaces the old one. PDF, under 4.4 MB.
         </p>
         <Suspense fallback={<p className="mt-4 text-ink-soft">Loading…</p>}><CafeMenuStatus /></Suspense>
+      </section>
+
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-semibold">In-store QR code</h2>
+        <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+          Print this for your tables. Customers who scan it make photo pages on their phone and press
+          <strong> Send to print</strong>: no booking, they pay at the counter. Their order appears on the worker page
+          straight away. Only this code can send print orders, so random visitors online can&apos;t.
+        </p>
+        <Suspense fallback={<p className="mt-4 text-ink-soft">Loading…</p>}><StudioQr /></Suspense>
       </section>
 
       <section className="mt-14">

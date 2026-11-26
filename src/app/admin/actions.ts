@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { isAdminAuthorized } from "@/lib/adminAuth";
 import { PAGE, heightForWidth } from "@/lib/pageSize";
-import { deleteElement, getElement, updateElement } from "@/lib/store";
+import { deleteElement, getElement, newStudioCode, updateElement } from "@/lib/store";
 
 async function requireAdmin() {
   if (!isAdminAuthorized((await headers()).get("authorization"))) throw new Error("Not authorised");
@@ -35,4 +35,11 @@ export async function removeElement(formData: FormData) {
   await deleteElement(String(formData.get("id")));
   revalidatePath("/admin");
   revalidatePath("/book");
+}
+
+/** A new code for the in-store QR code; old printed QR codes stop working. */
+export async function changeStudioCode() {
+  await requireAdmin();
+  await newStudioCode();
+  revalidatePath("/admin");
 }

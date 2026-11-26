@@ -14,6 +14,10 @@ export type Booking = {
   totals: { session: number; pages: number; drinks: number; total: number };
   printedAt?: string | null; // the worker printed the order's photos
   settledAt?: string | null; // the customer paid and left; their photos are deleted
+  visitDate?: string; // YYYY-MM-DD (for in-store orders: the day it was sent)
+  arrivalTime?: string; // HH:MM (for in-store orders: when it was sent)
+  walkIn?: boolean; // sent to print from the studio, paid at the counter
+  tableLabel?: string | null; // in-store orders: where the customer is sitting
 };
 
 type ElementRow = {
@@ -107,10 +111,12 @@ export async function getElementsByIds(ids: string[]): Promise<Element[]> {
 type BookingRow = {
   reference: string; created_at: string; name: string; email: string; phone: string; notes: string;
   payment: string; order: Order; totals: Booking["totals"]; printed_at: string | null; settled_at: string | null;
+  visit_date: string; arrival_time: string; walk_in: boolean; table_label: string | null;
 };
-const BOOKING_COLUMNS = "reference,created_at,name,email,phone,notes,payment,order,totals,printed_at,settled_at";
-const toBooking = ({ created_at, printed_at, settled_at, ...r }: BookingRow): Booking => ({
+const BOOKING_COLUMNS = "reference,created_at,name,email,phone,notes,payment,order,totals,printed_at,settled_at,visit_date,arrival_time,walk_in,table_label";
+const toBooking = ({ created_at, printed_at, settled_at, visit_date, arrival_time, walk_in, table_label, ...r }: BookingRow): Booking => ({
   ...r, createdAt: created_at, printedAt: printed_at, settledAt: settled_at,
+  visitDate: visit_date, arrivalTime: arrival_time.slice(0, 5), walkIn: walk_in, tableLabel: table_label,
 });
 
 export async function getBookings(limit = 200): Promise<Booking[]> {
@@ -148,28 +154,73 @@ export async function settleBooking(reference: string): Promise<{ deleted: numbe
   return { deleted };
 }
 
-export async function addBooking(b: Omit<Booking, "reference" | "createdAt">): Promise<string> {
-  const visit = b.order.visit!;
+/** Saves a booking row under a new random reference like PM-3F9A1C. */
+async function insertWithReference(row: Record<string, unknown>): Promise<string> {
   for (let attempt = 0; attempt < 3; attempt++) {
     const reference = `PM-${crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const { error } = await db().from("bookings").insert({
-      reference,
-      name: b.name,
-      email: b.email,
-      phone: b.phone,
-      notes: b.notes,
-      payment: b.payment,
-      visit_date: visit.date,
-      arrival_time: visit.time,
-      people: visit.people,
-      order: b.order,
-      totals: b.totals,
-      total: b.totals.total,
-    });
+    const { error } = await db().from("bookings").insert({ reference, ...row });
     if (!error) return reference;
-    if (error.code !== "23505") throw new Error(`Could not save booking: ${error.message}`); // 23505 = duplicate reference
+    if (error.code !== "23505") throw new Error(`Could not save the order: ${error.message}`); // 23505 = duplicate reference
   }
-  throw new Error("Could not create a booking reference. Please try again.");
+  throw new Error("Could not create a reference. Please try again.");
+}
+
+/** An in-store customer sends photo pages to print. No booking: they pay at the counter. */
+export async function addWalkIn(w: { name: string; tableLabel: string; order: Order; totals: Booking["totals"] }): Promise<string> {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
+  const get = (t: string) => parts.find((p) => p.type === t)!.value;
+  return insertWithReference({
+    name: w.name,
+    email: "",
+    phone: "",
+    notes: "",
+    payment: "Pay at the counter",
+    visit_date: `${get("year")}-${get("month")}-${get("day")}`,
+    arrival_time: `${get("hour")}:${get("minute")}`,
+    people: 1,
+    order: w.order,
+    totals: w.totals,
+    total: w.totals.total,
+    walk_in: true,
+    table_label: w.tableLabel || null,
+  });
+}
+
+/* ───────── In-store QR code ─────────
+ * The table QR code opens the photo pages with this code, which lets customers send pages to print.
+ * Changing it (admin page) stops old QR codes from working.
+ */
+const newCode = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[b % 31]).join("");
+
+export async function getStudioCode(): Promise<string> {
+  const { data, error } = await db().from("site_settings").select("value").eq("key", "studio_code").maybeSingle();
+  if (error) throw new Error(`Could not load the studio code: ${error.message}`);
+  const code = (data?.value as { code?: string } | undefined)?.code;
+  return code ?? newStudioCode();
+}
+
+export async function newStudioCode(): Promise<string> {
+  const code = newCode();
+  const { error } = await db().from("site_settings").upsert({ key: "studio_code", value: { code }, updated_at: new Date().toISOString() });
+  if (error) throw new Error(`Could not save the studio code: ${error.message}`);
+  return code;
+}
+
+export async function addBooking(b: Omit<Booking, "reference" | "createdAt">): Promise<string> {
+  const visit = b.order.visit!;
+  return insertWithReference({
+    name: b.name,
+    email: b.email,
+    phone: b.phone,
+    notes: b.notes,
+    payment: b.payment,
+    visit_date: visit.date,
+    arrival_time: visit.time,
+    people: visit.people,
+    order: b.order,
+    totals: b.totals,
+    total: b.totals.total,
+  });
 }
 
 /* ───────── Café menu (a PDF uploaded from /admin) ───────── */

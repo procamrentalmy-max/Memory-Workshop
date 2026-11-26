@@ -61,6 +61,14 @@ collage / photo shapes page it makes a print file: an exact-size A4 PDF with the
 unchanged and cut to their sections or shapes. Print it at **actual size** (100 %, no "fit to page"), borderless when
 the design reaches the edges. It opens with `WORKER_PASSWORD` (set it in Vercel for staff) or `ADMIN_PASSWORD`.
 
+### In-store customers
+
+Walk-in customers don't book. They scan the **in-store QR code** (admin page → In-store QR code; print it for the
+tables), which opens `/collage?studio=CODE` and puts their phone in "at the studio" mode for 12 hours. They make
+their photo pages and press **Send to print** (`/print`) with their name and table number. The order goes straight to
+the worker page as an *In store* order; they pay at the counter (POS) as usual, and **Bill settled** deletes their photos.
+Changing the code on the admin page stops old QR codes from working.
+
 ### Customer photo retention
 
 The rules are in the database function `customer_photo_status()`:

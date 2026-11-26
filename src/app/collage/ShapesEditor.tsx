@@ -14,6 +14,7 @@ import {
 import type { Order, PhotoFill } from "@/lib/types";
 import { PhotoEditor } from "../book/PhotoEditor";
 import { SHAPES_DRAFT_KEY, releaseUnusedPhotos, usePhotoCleanup } from "../book/devicePhotos";
+import { useStudioCode } from "../print/studioMode";
 import { newId, setOrder } from "../book/orderStore";
 import { OrientationToggle } from "./OrientationToggle";
 
@@ -48,6 +49,7 @@ function loadDraft(): Draft {
 }
 
 export function ShapesEditor({ order, editId }: { order: Order; editId: string | null }) {
+  const studio = useStudioCode(); // at the studio: pages go straight to print
   const router = useRouter();
   const [draft, setDraftState] = useState<Draft>(() => {
     const page = editId ? order.pages.find((p) => p.id === editId && p.kind === "shapes") : null;
@@ -362,7 +364,7 @@ export function ShapesEditor({ order, editId }: { order: Order; editId: string |
     }));
     if (draft.editingId) {
       releaseUnusedPhotos();
-      return router.push("/book");
+      return router.push(studio ? "/print" : "/book");
     }
     setAdded(true);
     setSelected(null);
@@ -551,7 +553,11 @@ export function ShapesEditor({ order, editId }: { order: Order; editId: string |
             <div className="mt-3 rounded-xl bg-sage/15 p-3 text-sm">
               <p className="font-semibold text-[#3f5e41]">✓ Photo page added to your order</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                <Link href="/book/time" className="btn btn-primary !px-4 !py-2 text-sm">Next: choose your time →</Link>
+                {studio ? (
+                  <Link href="/print" className="btn btn-primary !px-4 !py-2 text-sm">Send to print →</Link>
+                ) : (
+                  <Link href="/book/time" className="btn btn-primary !px-4 !py-2 text-sm">Next: choose your time →</Link>
+                )}
                 <button type="button" onClick={() => setAdded(false)} className="btn btn-ghost !px-4 !py-2 text-sm">Make another</button>
               </div>
             </div>
@@ -562,13 +568,13 @@ export function ShapesEditor({ order, editId }: { order: Order; editId: string |
               </button>
               {photos === 0 && <p className="mt-1 text-center text-xs text-ink-soft">Add at least one photo first.</p>}
               {draft.editingId && (
-                <Link href="/book" className="mt-2 block text-center text-sm text-ink-soft hover:text-accent">Cancel editing</Link>
+                <Link href={studio ? "/print" : "/book"} className="mt-2 block text-center text-sm text-ink-soft hover:text-accent">Cancel editing</Link>
               )}
             </>
           )}
           {order.pages.length > 0 && !added && (
             <p className="mt-3 text-center text-xs text-ink-soft">
-              {order.pages.length} page{order.pages.length === 1 ? "" : "s"} in your order · <Link href="/book" className="underline">view</Link>
+              {order.pages.length} page{order.pages.length === 1 ? "" : "s"} in your order · <Link href={studio ? "/print" : "/book"} className="underline">{studio ? "send to print" : "view"}</Link>
             </p>
           )}
         </div>

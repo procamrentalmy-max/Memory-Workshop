@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { CollageView } from "@/components/CollageView";
 import { ShapesView } from "@/components/ShapesView";
-import { TEMPLATES, to12h } from "@/lib/data";
+import { TEMPLATES, formatRM, to12h } from "@/lib/data";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { dpiQuality, photoDpi, printSheet } from "@/lib/printing";
 import { getWorkerOrders, type Booking } from "@/lib/store";
@@ -44,9 +44,9 @@ async function Orders() {
   const { open, settled } = await getWorkerOrders();
   const today = klDate(new Date());
   const groups = [
-    { title: "Today", orders: open.filter((b) => b.order.visit?.date === today) },
-    { title: "Earlier, bill not settled yet", orders: open.filter((b) => (b.order.visit?.date ?? "") < today) },
-    { title: "Coming up", orders: open.filter((b) => (b.order.visit?.date ?? "") > today) },
+    { title: "Today", orders: open.filter((b) => b.visitDate === today) },
+    { title: "Earlier, bill not settled yet", orders: open.filter((b) => (b.visitDate ?? "") < today) },
+    { title: "Coming up", orders: open.filter((b) => (b.visitDate ?? "") > today) },
   ];
   return (
     <>
@@ -95,7 +95,16 @@ function OrderCard({ booking: b, today }: { booking: Booking; today: string }) {
             {b.name} <span className="ml-1 font-mono text-xs font-normal text-ink-soft">{b.reference}</span>
           </p>
           <p className="text-sm text-ink-soft">
-            {v ? `${dayLabel(v.date, today)}, arriving ${to12h(v.time)} · ${v.people} ${v.people === 1 ? "person" : "people"}` : ""} · {b.phone}
+            {b.walkIn ? (
+              <>
+                <strong className="text-ink">In store{b.tableLabel ? ` · Table ${b.tableLabel}` : ""}</strong> · sent {dayLabel(b.visitDate ?? today, today).toLowerCase()} at {to12h(b.arrivalTime ?? "00:00")}
+              </>
+            ) : (
+              `${v ? `${dayLabel(v.date, today)}, arriving ${to12h(v.time)} · ${v.people} ${v.people === 1 ? "person" : "people"}` : ""} · ${b.phone}`
+            )}
+          </p>
+          <p className="text-xs text-ink-soft">
+            {b.walkIn ? `Prints ${formatRM(b.totals.total)} · add to their bill at the counter` : `Order total ${formatRM(b.totals.total)} · ${b.payment}`}
           </p>
           {b.notes && <p className="mt-1 text-sm">“{b.notes}”</p>}
         </div>
