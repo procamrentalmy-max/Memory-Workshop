@@ -8,7 +8,7 @@ import { siteFileSrc, type CafeMenu } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Shop & Café",
-  description: "Unlimited stationery, snacks and water with every session, plus badges, NFC tags, notebooks, coffee and pastries at the studio.",
+  description: "Free stationery, snacks and water in every workshop, plus NFC badges, photo prints, scrapbooks, coffee and pastries at the studio.",
 };
 
 function CafeList() {
@@ -20,7 +20,7 @@ function CafeList() {
             <span>{d.name}</span>
             <span className="text-right">
               <span className="font-semibold">{formatRM(d.price)}</span>
-              {d.sessionPrice < d.price && <span className="block text-xs text-ink-soft">{formatRM(d.sessionPrice)} with a session</span>}
+              {d.sessionPrice < d.price && <span className="block text-xs text-ink-soft">{formatRM(d.sessionPrice)} with a workshop</span>}
             </span>
           </li>
         ))}
@@ -60,10 +60,10 @@ export default function ShopPage() {
       <h1 className="font-display text-4xl font-semibold sm:text-5xl">Shop &amp; café</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">Everything you need to fill your scrapbook, and something nice to sip while you do.</p>
 
-      {/* Free with every session */}
+      {/* Free in every workshop */}
       <section className="relative mt-10 overflow-hidden rounded-2xl bg-sage/15 p-7 ring-1 ring-sage/40 sm:p-9">
         <span className="absolute -right-3 top-6 rotate-12 rounded-md bg-accent px-4 py-1 font-display text-lg font-bold text-accent-ink shadow">FREE</span>
-        <p className="font-hand text-2xl text-[#3f5e41]">included with every session</p>
+        <p className="font-hand text-2xl text-[#3f5e41]">included in every workshop</p>
         <h2 className="mt-1 font-display text-3xl font-semibold">Unlimited stationery, snacks &amp; water</h2>
         <p className="mt-2 max-w-2xl text-ink-soft">
           Use as many papers, stickers, ribbons and cutters as you like while you create, with free-flow snacks and water.
@@ -117,7 +117,7 @@ export default function ShopPage() {
         <section className="relative rounded-2xl bg-card p-7 pt-9 shadow-sm">
           <span className="washi -top-2 left-8 rotate-2" style={{ ["--tape" as string]: "#5e3c2b" }} />
           <h2 className="font-display text-2xl font-semibold">Café</h2>
-          <p className="mt-1 text-sm text-ink-soft">Fuel for creativity, made fresh at the studio bar. Drinks are cheaper added to a session.</p>
+          <p className="mt-1 text-sm text-ink-soft">Fuel for creativity, made fresh at the studio bar. Drinks are cheaper added to a workshop.</p>
           <CafeList />
           <Suspense fallback={null}>
             <CafeMenuLink />

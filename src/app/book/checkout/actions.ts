@@ -1,6 +1,6 @@
 "use server";
 
-import { ARRIVAL_TIMES, DRINKS } from "@/lib/data";
+import { ARRIVAL_TIMES, DRINKS, PACKAGE_IDS } from "@/lib/data";
 import { orderTotals } from "@/lib/pricing";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { addBooking, missingPhotos } from "@/lib/store";
@@ -29,7 +29,15 @@ async function sanitiseOrder(raw: unknown): Promise<Order | string> {
   const now = klNow();
   if (v.date < now.date || (v.date === now.date && v.time <= now.time)) return "That arrival time has already passed. Please choose another.";
   if (new Date(`${v.date}T00:00:00Z`).getUTCDay() === 1) return "The studio is closed on Mondays.";
-  const people = Math.round(num(v.people, 1, 12));
+  // One package per person: the number of people comes from the packages.
+  const packages: Record<string, number> = {};
+  for (const [id, q] of Object.entries(o.packages ?? {})) {
+    const n = Math.round(num(q, 0, 12));
+    if (n > 0 && PACKAGE_IDS.includes(id as never)) packages[id] = n;
+  }
+  const people = Object.values(packages).reduce((a, b) => a + b, 0);
+  if (people < 1) return "Please choose at least one package.";
+  if (people > 12) return "For more than 12 people, please email us and we'll set it up.";
 
   // Photo pages (photo collage / photo shapes) only, rebuilt from trusted values.
   const pages: OrderPage[] = [];
@@ -43,7 +51,7 @@ async function sanitiseOrder(raw: unknown): Promise<Order | string> {
     const n = Math.round(num(q, 0, 20));
     if (n > 0 && DRINKS.some((d) => d.name === name)) drinks[name] = n;
   }
-  const order: Order = { visit: { date: v.date, time: v.time, people }, pages, drinks };
+  const order: Order = { packages, visit: { date: v.date, time: v.time, people }, pages, drinks };
   // Every photo must still be stored, so the studio can print it.
   if ((await missingPhotos(orderPhotoFiles(order))).length) {
     return "One or more of your photos couldn't be found (photos are kept for a while before booking). Please add them again on the pages step, then book.";

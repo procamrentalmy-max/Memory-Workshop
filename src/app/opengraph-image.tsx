@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { PRICING, STUDIO, formatRM } from "@/lib/data";
+import { PACKAGES, STUDIO, formatRM } from "@/lib/data";
 
 export const alt = `${STUDIO.name}, a hands-on memory creation studio`;
 export const size = { width: 1200, height: 630 };
@@ -21,7 +21,7 @@ export default function OpengraphImage() {
             Turn your favourite moments into keepsakes.
           </div>
           <div style={{ fontSize: 28, color: "#6b6058", marginTop: 26 }}>
-            {`${formatRM(PRICING.session)} per person · 1 hour · everything included`}
+            {`Workshops from ${formatRM(Math.min(...PACKAGES.map((p) => p.price)))} · NFC badges · photo prints`}
           </div>
           <div style={{ display: "flex", alignItems: "center", marginTop: 36 }}>
             <div style={{ width: 54, height: 54, borderRadius: 10, background: "#b8492f", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, fontWeight: 700 }}>P</div>

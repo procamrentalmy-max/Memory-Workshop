@@ -27,12 +27,13 @@ export type OrderPage =
   | { kind: "shapes"; id: string; sheet: ShapeSheet }; // photos in shapes drawn on a blank A4 (see lib/shapes.ts)
 
 export type Order = {
+  packages?: Record<string, number>; // package id -> how many people take it
   visit: { date: string; time: string; people: number } | null;
   pages: OrderPage[];
   drinks: Record<string, number>; // drink name -> quantity
 };
 
-export const EMPTY_ORDER: Order = { visit: null, pages: [], drinks: {} };
+export const EMPTY_ORDER: Order = { packages: {}, visit: null, pages: [], drinks: {} };
 
 /** Largest photo a customer can upload (must match the "customer-photos" bucket's file size limit). */
 export const MAX_PHOTO_BYTES = 30 * 1024 * 1024;

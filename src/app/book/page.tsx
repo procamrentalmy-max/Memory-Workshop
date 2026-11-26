@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { PhotosStep } from "./PhotosStep";
+import { PackagesStep } from "./PackagesStep";
 
 export const metadata: Metadata = {
   title: "Book a Session",
-  description: "Book a 1-hour memory-making session: a scrapbook, a Memory Badge, unlimited stationery, 2 photo prints and free-flow snacks for RM24.",
+  description: "Choose your workshop package: Basic from RM8, Memory Maker RM21, Complete Memory RM35, or the Badge workshop RM15.",
 };
 
-export default function PhotosStepPage() {
-  return <PhotosStep />;
+export default function PackagesStepPage() {
+  return <PackagesStep />;
 }

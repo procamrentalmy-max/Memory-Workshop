@@ -5,6 +5,7 @@ import { CollageView } from "@/components/CollageView";
 import { ShapesView } from "@/components/ShapesView";
 import { PRICING, formatRM, to12h } from "@/lib/data";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
+import { orderPackages } from "@/lib/pricing";
 import { dpiQuality, photoDpi, printSheet } from "@/lib/printing";
 import { getWorkerOrders, type Booking } from "@/lib/store";
 import type { OrderPage } from "@/lib/types";
@@ -102,8 +103,8 @@ function OrderCard({ booking: b, today }: { booking: Booking; today: string }) {
           </p>
           <p className="text-xs text-ink-soft">
             {b.walkIn
-              ? `${photoPages.length} photo sheet${photoPages.length === 1 ? "" : "s"} · 1 per person is included, extra sheets ${formatRM(PRICING.photoPrint)} per photo · add to their bill`
-              : `Order total ${formatRM(b.totals.total)} · ${b.payment}`}
+              ? `${photoPages.length} photo sheet${photoPages.length === 1 ? "" : "s"} · sheets in their package are free (Memory Maker 1, Complete 2), extra sheets ${formatRM(PRICING.photoSheet)} · add to their bill`
+              : `${orderPackages(b.order).map(([p, q]) => `${q} × ${p.name}`).join(", ") || "No package"} · order total ${formatRM(b.totals.total)} · ${b.payment}`}
           </p>
           {b.notes && <p className="mt-1 text-sm">“{b.notes}”</p>}
         </div>

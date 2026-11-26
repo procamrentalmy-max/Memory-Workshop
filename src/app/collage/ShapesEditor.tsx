@@ -547,7 +547,7 @@ export function ShapesEditor({ order, editId }: { order: Order; editId: string |
             <span className="text-ink-soft">{shapes.length} shape{shapes.length === 1 ? "" : "s"}</span>
             <span className="font-display text-2xl font-semibold">{photos} photo{photos === 1 ? "" : "s"}</span>
           </div>
-          <p className="mt-1 text-xs text-ink-soft">One A4 sheet per person is included in the RM24 session. Extra sheets {formatRM(PRICING.photoPrint)} per photo.</p>
+          <p className="mt-1 text-xs text-ink-soft">Memory Maker includes 1 sheet (2 A5 prints), Complete Memory 2. Extra sheets {formatRM(PRICING.photoSheet)} each.</p>
           {added ? (
             <div className="mt-3 rounded-xl bg-sage/15 p-3 text-sm">
               <p className="font-semibold text-[#3f5e41]">✓ Photo page added to your order</p>

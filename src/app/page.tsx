@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { BADGES, DRINKS, FAQS, PRICING, SESSION_INCLUDES, formatRM } from "@/lib/data";
+import { BADGES, DRINKS, EXTRA_TIME_RULE, FAQS, PACKAGES, PRICING, formatRM } from "@/lib/data";
 
 const STEPS = [
-  { n: "01", title: "Design your photo prints", text: "Make your two A5 photo prints on our website, or do it at the studio." },
+  { n: "01", title: "Choose your package", text: "From a quick 30 minutes to a full scrapbook, and design your photo prints online." },
   { n: "02", title: "Choose your time", text: "Choose the day and time you'd like to come in." },
-  { n: "03", title: "Choose your drink", text: "Add a coffee to your session for less, ready for when you arrive." },
+  { n: "03", title: "Choose your drink", text: "Add a coffee to your workshop for less, ready for when you arrive." },
   { n: "04", title: "Excited to see you!", text: "Bring your favourite people. We'll have everything ready." },
 ];
 
@@ -15,6 +15,7 @@ const AUDIENCES = [
 ];
 
 const cheapestDrink = Math.min(...DRINKS.map((d) => d.sessionPrice));
+const cheapestPackage = Math.min(...PACKAGES.map((p) => p.price));
 const cheapestNfc = Math.min(...BADGES.filter((b) => b.name.includes("NFC")).map((b) => b.price));
 
 export default function Home() {
@@ -25,14 +26,14 @@ export default function Home() {
         <div>
           <p className="font-hand text-2xl text-accent">a hands-on memory creation studio</p>
           <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-sage/20 px-3 py-1 text-sm font-semibold text-[#3f5e41] ring-1 ring-sage/40">
-            <span aria-hidden>✂</span> Unlimited stationery, snacks &amp; water included
+            <span aria-hidden>✂</span> Free stickers, stationery, snacks &amp; water
           </p>
           <h1 className="mt-2 font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
             Turn your favourite moments into keepsakes you made yourself.
           </h1>
           <p className="mt-5 max-w-lg text-lg text-ink-soft">
-            One hour, a textured scrapbook to fill, a Memory Badge, two photo prints and everything you need to decorate,
-            for {formatRM(PRICING.session)} a person.
+            Bring your photos, tickets and souvenirs. Pick a prepared design and make it yourself: scrapbook pages, photo
+            prints and NFC badges that play your video. Workshops from {formatRM(cheapestPackage)}.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/book" className="btn btn-primary">Book a Session</Link>
@@ -40,8 +41,8 @@ export default function Home() {
           </div>
           <dl className="mt-10 flex flex-wrap gap-x-10 gap-y-4">
             <div>
-              <dt className="text-sm text-ink-soft">Session, 1 hour</dt>
-              <dd className="font-display text-2xl font-semibold">{formatRM(PRICING.session)}<span className="text-base font-normal text-ink-soft"> /person</span></dd>
+              <dt className="text-sm text-ink-soft">Workshops from</dt>
+              <dd className="font-display text-2xl font-semibold">{formatRM(cheapestPackage)}<span className="text-base font-normal text-ink-soft"> /person</span></dd>
             </div>
             <div>
               <dt className="text-sm text-ink-soft">Extra 30 minutes</dt>
@@ -59,17 +60,19 @@ export default function Home() {
           <div className="relative rotate-[-2deg] rounded-2xl bg-card p-7 pt-9 shadow-xl">
             <span className="washi -top-2 left-8 -rotate-3" style={{ ["--tape" as string]: "#c4553a" }} />
             <span className="washi -top-2 right-6 rotate-6" style={{ ["--tape" as string]: "#7d9a7e" }} />
-            <p className="font-hand text-2xl text-accent">your session</p>
-            <p className="font-display text-5xl font-semibold">{formatRM(PRICING.session)}</p>
-            <p className="text-sm text-ink-soft">per person · 1 hour</p>
-            <ul className="mt-5 space-y-2.5 border-t border-dashed border-line pt-5">
-              {SESSION_INCLUDES.map((x) => (
-                <li key={x} className="flex gap-2.5"><span className="text-[#3f5e41]" aria-hidden>✓</span><span>{x}</span></li>
+            <p className="font-hand text-2xl text-accent">our workshops</p>
+            <ul className="mt-2 divide-y divide-dashed divide-line">
+              {PACKAGES.map((p) => (
+                <li key={p.id} className="flex items-baseline justify-between gap-4 py-2.5">
+                  <span>
+                    <span className="font-semibold">{p.name}</span>
+                    <span className="block text-xs text-ink-soft">{p.includes.filter((x) => !x.startsWith("Shared")).join(" · ")}</span>
+                  </span>
+                  <span className="font-display text-xl font-semibold">{formatRM(p.price)}</span>
+                </li>
               ))}
             </ul>
-            <p className="mt-5 border-t border-dashed border-line pt-4 text-sm text-ink-soft">
-              Staying longer? {formatRM(PRICING.extraHalfHour)} for every extra 30 minutes.
-            </p>
+            <p className="mt-3 border-t border-dashed border-line pt-3 text-xs text-ink-soft">{EXTRA_TIME_RULE}</p>
           </div>
           <p className="absolute -bottom-6 right-2 rotate-[-4deg] font-hand text-2xl text-ink-soft">made by you ✂</p>
         </div>
@@ -98,8 +101,9 @@ export default function Home() {
           <div>
             <h2 className="font-display text-3xl font-semibold sm:text-4xl">Your photos, printed</h2>
             <p className="mt-3 max-w-2xl text-ink-soft">
-              Every session includes two A5 photo prints. Design the sheet yourself on our website: split it in two, make a
-              grid, or draw circles, hearts and stars and fill them with your photos. We print it, you stick it in.
+              Memory Maker and Complete Memory include photo prints you design yourself on our website: split an A4 sheet into
+              two A5 prints, make a grid, or draw circles, hearts and stars and fill them with your photos. We print it, you
+              stick it in.
             </p>
             <Link href="/collage" className="btn btn-primary mt-6">Design your photo prints</Link>
           </div>
@@ -127,7 +131,8 @@ export default function Home() {
             <h2 className="mt-3 font-display text-2xl font-semibold sm:text-3xl">Badges that play your video</h2>
             <p className="mt-2 max-w-2xl text-ink-soft">
               Add a badge with a tiny NFC tag inside. Tap it with any phone to play your music or a video of up to 30 seconds,
-              no app needed. From {formatRM(cheapestNfc)}.
+              no app needed. From {formatRM(cheapestNfc)}, or join a Badge workshop for {formatRM(PACKAGES.find((p) => p.id === "badge")!.price)}
+              with one NFC tag free.
             </p>
           </div>
           <Link href="/shop" className="btn btn-ghost">See badges</Link>
@@ -159,7 +164,7 @@ export default function Home() {
             <h2 className="mt-1 font-display text-3xl font-semibold">Shop &amp; café</h2>
             <p className="mt-3 text-paper/80">
               Papers, stickers, ribbons and cutters are yours to use, with free-flow snacks and water. Add a coffee to your
-              session from {formatRM(cheapestDrink)}, try a pastry, and take home a badge or two.
+              workshop from {formatRM(cheapestDrink)}, try a pastry, and take home a badge or two.
             </p>
             <Link href="/shop" className="btn mt-6 bg-paper text-ink hover:bg-white">Visit the shop &amp; café</Link>
           </div>

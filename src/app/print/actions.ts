@@ -1,6 +1,7 @@
 "use server";
 
-import { extraSheetPrice, photoCount } from "@/lib/pricing";
+import { PRICING } from "@/lib/data";
+import { photoCount } from "@/lib/pricing";
 import { cleanPhotoPage } from "@/lib/sanitise";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { addWalkIn, getStudioCode, missingPhotos } from "@/lib/store";
@@ -39,8 +40,8 @@ export async function sendToPrint(_prev: PrintState, formData: FormData): Promis
     if ((await missingPhotos(orderPhotoFiles(order))).length) {
       return { status: "error", message: "One of your photos couldn't be found. Please add it again, then send to print." };
     }
-    // Every sheet at the extra-sheet price; staff take off the sheets included in the session (one per person) at the counter.
-    const prints = pages.reduce((sum, p) => sum + extraSheetPrice(p), 0);
+    // Every sheet at the extra-sheet price; staff take off the sheets included in their packages at the counter.
+    const prints = pages.length * PRICING.photoSheet;
     const reference = await addWalkIn({ name, tableLabel: table, order, totals: { session: 0, pages: prints, drinks: 0, total: prints } });
     return { status: "success", reference, name, total: prints, photos: orderPhotoFiles(order).length, sentIds: pages.map((p) => p.id) };
   } catch (e) {

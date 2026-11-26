@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ARRIVAL_TIMES, PRICING, SESSION_HOURS, STUDIO, formatRM, to12h } from "@/lib/data";
-import { sessionEstimate } from "@/lib/pricing";
+import Link from "next/link";
+import { ARRIVAL_TIMES, EXTRA_TIME_RULE, STUDIO, formatRM, to12h } from "@/lib/data";
+import { packagesTotal, peopleCount } from "@/lib/pricing";
 import type { Order } from "@/lib/types";
 import { ActionBar, nextBtn } from "./ActionBar";
 import { OrderSummary } from "./OrderSummary";
@@ -35,7 +36,7 @@ function VisitFormInner({ order }: { order: Order }) {
   const initial = order.visit && order.visit.date >= now.today ? order.visit : null;
   const [date, setDate] = useState(initial?.date ?? "");
   const [time, setTime] = useState(initial?.time ?? "");
-  const [people, setPeople] = useState(order.visit?.people ?? 2);
+  const people = peopleCount(order); // one package per person
   const [error, setError] = useState("");
 
   const isPast = (t: string, d = date) => d === now.today && t <= now.time;
@@ -54,6 +55,7 @@ function VisitFormInner({ order }: { order: Order }) {
     e.preventDefault();
     if (!date) return setError("Please choose a date.");
     if (!time) return setError("Please choose when you'd like to arrive.");
+    if (!people) return setError("Please choose your packages first.");
     setOrder((o) => ({ ...o, visit: { date, time, people } }));
     router.push("/book/drinks");
   }
@@ -66,24 +68,26 @@ function VisitFormInner({ order }: { order: Order }) {
         <p className="font-hand text-2xl text-accent">step two</p>
         <h1 className="font-display text-4xl font-semibold sm:text-5xl">When would you like to come in?</h1>
         <p className="mt-3 max-w-xl text-ink-soft">
-          Just pick your arrival time. A session is {SESSION_HOURS} hour, {formatRM(PRICING.session)} per person. Want longer?
-          Each extra 30 minutes is {formatRM(PRICING.extraHalfHour)}, added at the studio.
+          Just pick your arrival time. Packages include 1 hour (Basic – 30 minutes: 30 minutes). {EXTRA_TIME_RULE}
         </p>
 
-        {/* People */}
-        <div className="mt-8">
-          <p className="text-sm font-semibold">How many people?</p>
-          <div className="mt-2 inline-flex items-center rounded-full border border-line bg-card">
-            <button type="button" aria-label="Fewer people" disabled={people <= 1} onClick={() => setPeople((p) => Math.max(1, p - 1))} className="h-11 w-12 text-xl disabled:opacity-30">−</button>
-            <span className="w-24 text-center font-semibold" aria-live="polite">{people} {people === 1 ? "person" : "people"}</span>
-            <button type="button" aria-label="More people" disabled={people >= 12} onClick={() => setPeople((p) => Math.min(12, p + 1))} className="h-11 w-12 text-xl disabled:opacity-30">+</button>
-          </div>
-          {people >= 12 && (
-            <p className="mt-2 text-xs text-ink-soft">
-              Bigger group? Email <a className="underline" href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a> and we&apos;ll set it up.
-            </p>
+        {/* People come from the packages chosen in step one */}
+        <p className="mt-6 text-sm">
+          {people ? (
+            <>
+              <strong>{people} {people === 1 ? "person" : "people"}</strong> · <Link href="/book" className="text-accent underline">change packages</Link>
+            </>
+          ) : (
+            <>
+              No packages yet. <Link href="/book" className="font-semibold text-accent underline">Choose your packages first</Link>.
+            </>
           )}
-        </div>
+          {people >= 12 && (
+            <span className="block text-xs text-ink-soft">
+              Bigger group? Email <a className="underline" href={`mailto:${STUDIO.email}`}>{STUDIO.email}</a> and we&apos;ll set it up.
+            </span>
+          )}
+        </p>
 
         {/* Date */}
         <fieldset className="mt-8 min-w-0">
@@ -131,14 +135,14 @@ function VisitFormInner({ order }: { order: Order }) {
               );
             })}
           </div>
-          <p className="mt-2 text-xs text-ink-soft">Open Tuesday to Sunday, 10 am – 10 pm. Last arrival 8:30 pm.</p>
+          <p className="mt-2 text-xs text-ink-soft">Open Tuesday to Sunday, 10 am – 10 pm. Last arrival 9 pm.</p>
         </fieldset>
 
         {error && <p className="mt-4 text-sm font-semibold text-accent" role="alert">{error}</p>}
 
-        <ActionBar back="/book" summary={<>Session estimate <strong className="ml-1 font-display text-xl">{formatRM(sessionEstimate(people))}</strong><span className="block text-xs text-paper/70">{people} × {formatRM(PRICING.session)}, 1 hour</span></>}>
+        <ActionBar back="/book" summary={<>Packages <strong className="ml-1 font-display text-xl">{formatRM(packagesTotal(order))}</strong><span className="block text-xs text-paper/70">{people} {people === 1 ? "person" : "people"}</span></>}>
           <button type="submit" className={nextBtn}>
-            Next<span className="hidden sm:inline">: choose a drink</span> →
+            <span>Next<span className="hidden sm:inline">: choose a drink</span> →</span>
           </button>
         </ActionBar>
       </div>

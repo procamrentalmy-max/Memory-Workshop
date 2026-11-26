@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { formatRM, to12h } from "@/lib/data";
 import { layout } from "@/lib/collage";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
+import { orderPackages } from "@/lib/pricing";
 import { PHOTO_KEEP_DAYS, getBookings, getCafeMenu, getPhotoCleanupReport, getStudioCode } from "@/lib/store";
 import { siteFileSrc } from "@/lib/types";
 import { listTags, tagStats } from "@/lib/tags";
@@ -210,7 +211,7 @@ async function BookingList() {
       <table className="w-full min-w-[860px] text-left text-sm">
         <thead className="bg-paper-2 text-ink-soft">
           <tr>
-            {["Ref", "Arrival", "Guests", "Name & contact", "Pages", "Photos", "Drinks", "Payment", "Total"].map((h) => (
+            {["Ref", "Arrival", "Guests", "Name & contact", "Packages & photo pages", "Photos", "Drinks", "Payment", "Total"].map((h) => (
               <th key={h} className="px-3 py-2 font-semibold">{h}</th>
             ))}
           </tr>
@@ -229,6 +230,7 @@ async function BookingList() {
               <td className="px-3 py-2">{b.walkIn ? "—" : b.order.visit?.people}</td>
               <td className="px-3 py-2">{b.name}<br /><span className="text-xs text-ink-soft">{b.email} · {b.phone}</span></td>
               <td className="px-3 py-2">
+                {orderPackages(b.order).map(([p, q]) => <span key={p.id} className="block font-semibold">{q} × {p.name}</span>)}
                 {b.order.pages.map((p) =>
                   p.kind === "collage" ? `Photo collage (${p.collage.orientation}, ${layout(p.collage.root).leaves.length} sections)`
                     : `Photo shapes (${p.sheet.orientation}, ${p.sheet.shapes.length} photos)`,

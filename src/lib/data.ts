@@ -10,31 +10,55 @@ export const STUDIO = {
 };
 
 export const PRICING = {
-  session: 24, // RM per person: a 1-hour session with everything in SESSION_INCLUDES
-  extraHalfHour: 5, // RM for each further 30 minutes, added at the studio
-  photoPrint: 1.5, // RM per photo on extra photo sheets (each person's first A4 sheet is included)
+  extraHalfHour: 7, // RM for each 30-minute block started after the grace period
+  graceMinutes: 10, // free minutes after a package's included time
+  photoSheet: 2.8, // RM per extra A4 photo sheet (an A4 photo print), beyond those in the packages
+  a5Print: 1.8, // RM, a single A5 photo print
+  a4Print: 2.8, // RM, a single A4 photo print
   currency: "RM",
 };
 
-/** A session is 1 hour (used for estimates and, later, seating). */
+export type PackageId = "basic30" | "basic60" | "memory-maker" | "complete" | "badge";
+export type Package = {
+  id: PackageId;
+  name: string;
+  price: number; // RM per person
+  includes: string[];
+  sheets: number; // A4 photo sheets included (2 A5 prints = 1 sheet)
+  typical?: string; // how long most guests take
+  note?: string;
+};
+
+/** Workshop packages, one per person. */
+export const PACKAGES: Package[] = [
+  { id: "basic30", name: "Basic – 30 minutes", price: 8, sheets: 0, includes: ["30 minutes in the studio", "Shared tools, stationery and stickers"] },
+  { id: "basic60", name: "Basic – 1 hour", price: 14, sheets: 0, includes: ["1 hour in the studio", "Shared tools, stationery and stickers"] },
+  {
+    id: "memory-maker", name: "Memory Maker", price: 21, sheets: 1, typical: "Most guests take 1.5–2 hours",
+    includes: ["1 hour in the studio", "1 NFC badge", "2 A5 photo prints"],
+  },
+  {
+    id: "complete", name: "Complete Memory", price: 35, sheets: 2, typical: "Most guests take 2–2.5 hours",
+    includes: ["1 hour in the studio", "1 NFC badge", "2 A5 photo prints and 1 A4 print", "15-page scrapbook"],
+  },
+  {
+    id: "badge", name: "Badge workshop", price: 15, sheets: 0,
+    includes: ["Make your own badge", "1 NFC tag free"], note: "More NFC badges at the usual badge prices",
+  },
+];
+export const PACKAGE_IDS = PACKAGES.map((p) => p.id);
+export const packageById = (id: string) => PACKAGES.find((p) => p.id === id);
+
+/** Packages include 1 hour (used for calendar invites and, later, seating). */
 export const SESSION_HOURS = 1;
 
-/** What the RM24 session includes, per person. */
-export const SESSION_INCLUDES = [
-  "1 Memory Badge",
-  "1 textured scrapbook",
-  "Unlimited papers, cutters, accessories, stickers and ribbons",
-  "2 A5 photo prints you design on our website",
-  "Free-flow snacks and water",
-];
-
-/** Photo sheets included per person: one A4 sheet (two A5 prints, or any layout). */
-export const INCLUDED_SHEETS_PER_PERSON = 1;
+/** Extra time, in plain words. */
+export const EXTRA_TIME_RULE = `After a ${PRICING.graceMinutes}-minute grace period, extra time is RM${PRICING.extraHalfHour} for every 30 minutes.`;
 
 /** Seating capacity. Set once the studio layout is known; null = no limit enforced yet. */
 export const SEATING: { seats: number | null } = { seats: null };
 
-/** Arrival times every 30 min; the last arrival leaves time for a 1-hour session before 10 pm. */
+/** Arrival times every 30 min; the last arrival leaves time for a 1-hour package before 10 pm. */
 export const ARRIVAL_TIMES = Array.from({ length: 23 }, (_, i) => {
   const mins = 10 * 60 + i * 30; // 10:00 … 21:00
   return `${String(Math.floor(mins / 60)).padStart(2, "0")}:${mins % 60 === 0 ? "00" : "30"}`;
@@ -77,18 +101,19 @@ export const BADGES: Product[] = [
 /** Things to buy at the studio. */
 export const SHOP: { group: string; blurb: string; items: Product[] }[] = [
   {
-    group: "Notebooks & Scrapbooks",
-    blurb: "Take your pages home in something worth keeping.",
+    group: "Photo prints & scrapbooks",
+    blurb: "Print more memories, and keep them somewhere special.",
     items: [
-      { name: "A5 dotted notebook", price: 22 },
-      { name: "Kraft scrapbook album (20 sleeves)", price: 45 },
-      { name: "Linen-cover keepsake album", price: 79 },
-      { name: "Refill page sleeves (10)", price: 15 },
+      { name: "A5 photo print", price: PRICING.a5Print },
+      { name: "A4 photo print", price: PRICING.a4Print },
+      { name: "15-page scrapbook", price: 15 },
+      { name: "30-page scrapbook", price: 20 },
+      { name: "2 extra scrapbook pages", price: 1 },
     ],
   },
 ];
 
-/** Café drinks: the regular price, and the price when added to a session (also used when pre-ordering). */
+/** Café drinks: the regular price, and the price when added to a workshop (also used when pre-ordering). */
 export type Drink = { name: string; price: number; sessionPrice: number };
 export const DRINKS: Drink[] = [
   { name: "Americano", price: 6.5, sessionPrice: 5 },
@@ -108,16 +133,20 @@ export const SEED_COUPON = "Every drink at the regular price comes with a seed p
 
 export const FAQS = [
   {
-    q: "What does the RM24 session include?",
-    a: `One hour in the studio with ${SESSION_INCLUDES.slice(0, -1).join(", ").toLowerCase()}, and ${SESSION_INCLUDES[SESSION_INCLUDES.length - 1].toLowerCase()}. Want longer? Each extra 30 minutes is ${formatRM(PRICING.extraHalfHour)}.`,
+    q: "Which package should I choose?",
+    a: "Basic (30 minutes for RM8, or 1 hour for RM14) is studio time with our shared tools and stationery. Memory Maker (RM21) adds an NFC badge and two A5 photo prints. Complete Memory (RM35) adds an A4 print and a 15-page scrapbook too. Just want a badge? The Badge workshop is RM15 with one NFC tag free.",
+  },
+  {
+    q: "How does extra time work?",
+    a: `Packages include 1 hour (or 30 minutes for Basic – 30 minutes). ${EXTRA_TIME_RULE} Most Memory Maker guests take 1.5–2 hours, and Complete Memory 2–2.5 hours.`,
   },
   {
     q: "Do I need to be good at art or crafts?",
-    a: "Not at all. There's no wrong way to fill a scrapbook, and our team is happy to help with ideas.",
+    a: "Not at all. You choose a prepared design and make it yourself with our materials, tools and simple instructions. Our team is happy to help.",
   },
   {
     q: "How do my photo prints work?",
-    a: "Your session includes two A5 photo prints: one A4 sheet you design on our Photo Collage page. Split it in two, make a grid or draw shapes, then add your photos. Do it before your visit or at the studio. Extra sheets are RM1.50 per photo.",
+    a: `Memory Maker includes two A5 photo prints: one A4 sheet you design on our Photo Collage page. Complete Memory adds an A4 print. Split the sheet, make a grid or draw shapes, then add your photos, before your visit or at the studio. Extra sheets are ${formatRM(PRICING.photoSheet)} each.`,
   },
   {
     q: "What happens to my photos?",
@@ -125,7 +154,7 @@ export const FAQS = [
   },
   {
     q: "Is there food and coffee?",
-    a: `Snacks and water are free flow. Add an Americano to your session for ${formatRM(DRINKS[0].sessionPrice)} or a latte or cappuccino for ${formatRM(DRINKS[1].sessionPrice)}, and try our pastries. ${SEED_COUPON}`,
+    a: `Snacks and water are free flow. Add an Americano to your workshop for ${formatRM(DRINKS[0].sessionPrice)} or a latte or cappuccino for ${formatRM(DRINKS[1].sessionPrice)}, and try our pastries. ${SEED_COUPON}`,
   },
   {
     q: "What are NFC badges?",

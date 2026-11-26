@@ -54,7 +54,7 @@ export default function DrinksStep() {
           summary={<>Estimated total <strong className="ml-1 font-display text-xl">{formatRM(orderTotals(order).total)}</strong></>}
         >
           <Link href="/book/checkout" className={nextBtn}>
-            {Object.keys(order.drinks).length ? <>Next<span className="hidden sm:inline">: your details</span> →</> : "Skip drinks →"}
+            {Object.keys(order.drinks).length ? <><span>Next<span className="hidden sm:inline">: your details</span> →</span></> : "Skip drinks →"}
           </Link>
         </ActionBar>
       </div>

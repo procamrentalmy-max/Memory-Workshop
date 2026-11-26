@@ -38,8 +38,8 @@ export function PrintOrder() {
         <p className="mt-4 text-sm text-ink-soft">Your order number</p>
         <p className="font-mono text-3xl font-bold tracking-wider">{state.reference}</p>
         <p className="mt-4 text-sm">
-          One sheet per person is included in your session; extra sheets are {formatRM(PRICING.photoPrint)} per photo. Pay at the
-          counter when you leave, together with your session.
+          Sheets included in your package are free; extra sheets are {formatRM(PRICING.photoSheet)} each. Pay at the counter when
+          you leave.
         </p>
         <p className="mt-2 text-xs text-ink-soft">Your photos are deleted once you&apos;ve paid.</p>
         <Link href="/collage" className="btn btn-primary mt-6">Make another photo page</Link>
@@ -111,7 +111,7 @@ export function PrintOrder() {
         </div>
         <div className="mt-4 flex items-baseline justify-between border-t border-line pt-4">
           <span className="text-sm text-ink-soft">
-            One sheet per person is included in your session. Extra sheets {formatRM(PRICING.photoPrint)} per photo, paid at the counter.
+            Sheets in your package (Memory Maker 1, Complete Memory 2) are included. Extra sheets {formatRM(PRICING.photoSheet)} each, paid at the counter.
           </span>
           <span className="shrink-0 font-display text-2xl font-semibold">{pages.length} sheet{pages.length === 1 ? "" : "s"} · {photos} photo{photos === 1 ? "" : "s"}</span>
         </div>
