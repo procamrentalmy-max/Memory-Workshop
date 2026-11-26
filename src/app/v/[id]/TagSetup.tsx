@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { MAX_TAG_VIDEO_BYTES, SETUP_CODE_RE, cleanSetupCode } from "@/lib/tagFormat";
+import { MAX_TAG_VIDEO_BYTES, SETUP_CODE_RE, cleanSetupCode, lengthLabel } from "@/lib/tagFormat";
 import { CantPrepareError, prepareVideo, videoDuration } from "./prepareVideo";
 
 type Phase = "idle" | "preparing" | "uploading" | "saving" | "done";
@@ -155,7 +155,7 @@ export function TagSetup({ tagId, hasVideo, ready, maxSeconds }: { tagId: string
       ) : !file ? (
         <div className="rounded-2xl bg-card p-5 shadow-sm">
           <p className="font-semibold">Choose your video</p>
-          <p className="text-sm text-ink-soft">Up to {maxSeconds} seconds. If it&apos;s longer, you&apos;ll choose which {maxSeconds} seconds to keep.</p>
+          <p className="text-sm text-ink-soft">Up to {lengthLabel(maxSeconds)}. If it&apos;s longer, you&apos;ll choose which part to keep.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="btn btn-primary cursor-pointer justify-center">
               🎥 Record a video
@@ -186,7 +186,7 @@ export function TagSetup({ tagId, hasVideo, ready, maxSeconds }: { tagId: string
           </div>
           {duration !== null && duration > maxSeconds + 0.05 && (
             <label className="mt-4 block text-sm font-semibold">
-              Choose your {maxSeconds} seconds
+              Choose your {lengthLabel(maxSeconds)}
               <input type="range" min={0} max={maxStart} step={0.1} value={start} disabled={busy}
                 onChange={(e) => { const s = Number(e.target.value); setStart(s); if (videoRef.current) videoRef.current.currentTime = s; }}
                 className="mt-2 w-full accent-[var(--accent)]" aria-label="Start of the clip" />

@@ -36,7 +36,7 @@ async function sanitiseOrder(raw: unknown): Promise<Order | string> {
     if (n > 0 && PACKAGE_IDS.includes(id as never)) packages[id] = n;
   }
   const people = peopleCount({ packages });
-  if (people < 1) return "Please choose a package with studio time (the Badge workshop is added to one).";
+  if (people < 1) return "Please choose a package with studio time (the Memory Badge workshop is added to one).";
   if (people > 12) return "For more than 12 people, please email us and we'll set it up.";
 
   // Photo pages (photo collage / photo shapes) only, rebuilt from trusted values.

@@ -36,16 +36,16 @@ export const PACKAGES: Package[] = [
   { id: "basic60", name: "Basic – 1 hour", price: 14, sheets: 0, includes: ["1 hour in the studio", "Shared tools, stationery and stickers"] },
   {
     id: "memory-maker", name: "Memory Maker", price: 21, sheets: 1, typical: "Most guests take 1.5–2 hours",
-    includes: ["1 hour in the studio", "1 NFC badge", "2 A5 photo prints"],
+    includes: ["1 hour in the studio", "1 Memory Badge (a badge with NFC)", "2 A5 photo prints"],
   },
   {
     id: "complete", name: "Complete Memory", price: 35, sheets: 2, typical: "Most guests take 2–2.5 hours",
-    includes: ["1 hour in the studio", "1 NFC badge", "2 A5 photo prints and 1 A4 print", "15-page scrapbook"],
+    includes: ["1 hour in the studio", "1 Memory Badge (a badge with NFC)", "2 A5 photo prints and 1 A4 print", "15-page scrapbook"],
   },
   {
-    id: "badge", name: "Badge workshop", price: 15, sheets: 0, addOn: true,
-    includes: ["Make your own badge", "1 NFC tag free, with a video of up to 30 seconds"],
-    note: "Studio time is extra: add Basic – 30 minutes (RM8) or Basic – 1 hour (RM14). More NFC badges at the usual badge prices.",
+    id: "badge", name: "Memory Badge workshop", price: 15, sheets: 0, addOn: true,
+    includes: ["Make your own Memory Badge (a badge with NFC)", "It plays a video of up to 30 seconds", "Sets up your NFC account"],
+    note: "Studio time is extra: add Basic – 30 minutes (RM8) or Basic – 1 hour (RM14). More Memory Badges: RM2 for the badge plus the NFC price.",
   },
 ];
 export const PACKAGE_IDS = PACKAGES.map((p) => p.id);
@@ -93,15 +93,24 @@ export const FREE_SUPPLIES: { group: string; items: string[] }[] = [
 /** Free in every workshop (shown as perks). */
 export const FREE_PERKS = "Every workshop comes with a huge selection of free cutters, ribbons, tapes and accessories, free water, and a free pastry tasting every 30 minutes.";
 
-/** Badges and NFC tags (tap with a phone to play music or a video). */
+/** Badges and keychains. */
 export const BADGES: Product[] = [
   { name: "Badge", price: 2 },
-  { name: "Badge with music NFC", price: 3.5, note: "Tap with a phone to play music" },
-  { name: "Badge with video NFC, up to 10 seconds", price: 4, note: "Tap with a phone to play your video" },
-  { name: "Badge with video NFC, up to 20 seconds", price: 4.5 },
-  { name: "Badge with video NFC, up to 30 seconds", price: 5 },
   { name: "Keychain", price: 1, note: "RM0.60 with any badge" },
 ];
+
+/**
+ * NFC: tap with a phone to play music or a video. A Memory Badge is a badge with NFC. The first comes with the Memory
+ * Badge workshop, which also sets up the customer's account; after that, each one is the badge (BADGES) plus
+ * the NFC below, priced by what it plays.
+ */
+export const NFC_PRICES: Product[] = [
+  { name: "Music", price: 1.5 },
+  { name: "Video up to 10 seconds", price: 2 },
+  { name: "Video up to 30 seconds", price: 2.5 },
+  { name: "Video up to 1 minute", price: 5 },
+];
+export const NFC_RULE = "A Memory Badge is a badge with NFC. Your first comes with the Memory Badge workshop (RM15), which also sets up your NFC account. After that, each Memory Badge is the badge (RM2) plus the NFC price.";
 
 /** Things to buy at the studio. */
 export const SHOP: { group: string; blurb: string; items: Product[] }[] = [
@@ -143,7 +152,7 @@ export const SEED_COUPON = "Every drink at the regular price comes with a seed p
 export const FAQS = [
   {
     q: "Which package should I choose?",
-    a: "Basic (30 minutes for RM8, or 1 hour for RM14) is studio time with our shared tools and stationery. Memory Maker (RM21) adds an NFC badge and two A5 photo prints. Complete Memory (RM35) adds an A4 print and a 15-page scrapbook too. Want to make a badge? Add the Badge workshop (RM15, one NFC tag free with a video of up to 30 seconds) to a Basic package for your studio time.",
+    a: "Basic (30 minutes for RM8, or 1 hour for RM14) is studio time with our shared tools and stationery. Memory Maker (RM21) adds a Memory Badge (a badge with NFC) and two A5 photo prints. Complete Memory (RM35) adds an A4 print and a 15-page scrapbook too. Want to make a Memory Badge? Add the Memory Badge workshop (RM15, with a video of up to 30 seconds) to a Basic package for your studio time.",
   },
   {
     q: "How does extra time work?",
@@ -166,8 +175,8 @@ export const FAQS = [
     a: `Water is free, and we bring round a free pastry tasting every 30 minutes. Our café serves coffee, matcha, chocolate and pastries. Add an Americano or a pot of tea with free refills to your workshop for ${formatRM(drinkByName("Americano").sessionPrice)}, or a latte or cappuccino for ${formatRM(drinkByName("Latte").sessionPrice)}. ${SEED_COUPON}`,
   },
   {
-    q: "What are NFC badges?",
-    a: "Badges with a tiny tag inside. Tap one with a phone to play your music or a video of up to 10, 20 or 30 seconds, no app needed. A great gift.",
+    q: "What is a Memory Badge?",
+    a: "A badge with NFC: a tiny tag inside plays your music or a video of up to 1 minute when you tap it with a phone, no app needed. Start with the Memory Badge workshop (RM15): it includes your first Memory Badge and sets up your account. After that, each Memory Badge is RM2 for the badge plus the NFC: RM1.50 for music, RM2 for a video up to 10 seconds, RM2.50 up to 30 seconds or RM5 up to 1 minute.",
   },
   {
     q: "Is it suitable for kids?",

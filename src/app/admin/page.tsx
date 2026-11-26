@@ -11,7 +11,7 @@ import { PHOTO_KEEP_DAYS, getBookings, getCafeMenu, getPhotoCleanupReport, getSt
 import { siteFileSrc } from "@/lib/types";
 import { listTags, tagStats } from "@/lib/tags";
 import { tagStorage } from "@/lib/tagStorage";
-import { TAG_LENGTHS } from "@/lib/tagFormat";
+import { TAG_LENGTHS, lengthLabel } from "@/lib/tagFormat";
 import { changeStudioCode, createTagBatch, removeTagVideo, toggleTag } from "./actions";
 import { CopyButton } from "./CopyButton";
 import { MenuUploader } from "./MenuUploader";
@@ -141,7 +141,7 @@ async function NfcTags() {
         <label className="text-sm font-semibold">
           Video length
           <select name="seconds" defaultValue="10" className="mt-1 block rounded-md border border-line bg-white px-2 py-1.5 font-normal">
-            {TAG_LENGTHS.map((s) => <option key={s} value={s}>Up to {s} seconds</option>)}
+            {TAG_LENGTHS.map((s) => <option key={s} value={s}>Up to {lengthLabel(s)}</option>)}
           </select>
         </label>
         <button className="btn btn-primary !px-4 !py-2 text-sm">Create</button>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BADGES, DRINKS, EXTRA_TIME_RULE, FAQS, PACKAGES, PRICING, formatRM } from "@/lib/data";
+import { BADGES, DRINKS, EXTRA_TIME_RULE, FAQS, NFC_PRICES, PACKAGES, PRICING, formatRM } from "@/lib/data";
 
 const STEPS = [
   { n: "01", title: "Choose your package", text: "From a quick 30 minutes to a full scrapbook, and design your photo prints online." },
@@ -16,7 +16,8 @@ const AUDIENCES = [
 
 const cheapestDrink = Math.min(...DRINKS.map((d) => d.sessionPrice));
 const cheapestPackage = Math.min(...PACKAGES.map((p) => p.price));
-const cheapestNfc = Math.min(...BADGES.filter((b) => b.name.includes("NFC")).map((b) => b.price));
+const cheapestNfc = Math.min(...NFC_PRICES.map((n) => n.price));
+const badgePrice = BADGES.find((b) => b.name === "Badge")!.price;
 
 export default function Home() {
   return (
@@ -33,7 +34,7 @@ export default function Home() {
           </h1>
           <p className="mt-5 max-w-lg text-lg text-ink-soft">
             Bring your photos, tickets and souvenirs. Pick a prepared design and make it yourself: scrapbook pages, photo
-            prints and NFC badges that play your video. Workshops from {formatRM(cheapestPackage)}.
+            prints and Memory Badges that play your video. Workshops from {formatRM(cheapestPackage)}.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/book" className="btn btn-primary">Book a Session</Link>
@@ -123,16 +124,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* NFC badges */}
+      {/* Memory Badges (badges with NFC) */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="cut-line grid gap-6 rounded-2xl bg-card p-8 md:grid-cols-[1fr_auto] md:items-center md:p-10">
           <div>
             <span className="rounded-full bg-sage/20 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#3f5e41]">New</span>
-            <h2 className="mt-3 font-display text-2xl font-semibold sm:text-3xl">Badges that play your video</h2>
+            <h2 className="mt-3 font-display text-2xl font-semibold sm:text-3xl">Memory Badges: badges that play your video</h2>
             <p className="mt-2 max-w-2xl text-ink-soft">
-              Add a badge with a tiny NFC tag inside. Tap it with any phone to play your music or a video of up to 30 seconds,
-              no app needed. From {formatRM(cheapestNfc)}, or join a Badge workshop for {formatRM(PACKAGES.find((p) => p.id === "badge")!.price)}
-              with one NFC tag free.
+              A Memory Badge is a badge with NFC: tap it with any phone to play your music or a video of up to 1 minute, no
+              app needed. Start with the Memory Badge workshop ({formatRM(PACKAGES.find((p) => p.id === "badge")!.price)}): it
+              includes your first Memory Badge and sets up your account. After that, a Memory Badge is the badge
+              ({formatRM(badgePrice)}) plus NFC from {formatRM(cheapestNfc)}.
             </p>
           </div>
           <Link href="/shop" className="btn btn-ghost">See badges</Link>

@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { BADGES, DRINKS, FREE_SUPPLIES, PASTRIES, SEED_COUPON, SHOP, formatRM } from "@/lib/data";
+import { BADGES, DRINKS, FREE_SUPPLIES, NFC_PRICES, NFC_RULE, PASTRIES, SEED_COUPON, SHOP, formatRM } from "@/lib/data";
 import { getCafeMenu } from "@/lib/store";
 import { siteFileSrc, type CafeMenu } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Shop & Café",
-  description: "Free cutters, ribbons, tapes, accessories, water and pastry tastings in every workshop, plus NFC badges, photo prints, scrapbooks and coffee.",
+  description: "Free cutters, ribbons, tapes, accessories, water and pastry tastings in every workshop, plus Memory Badges, photo prints, scrapbooks and coffee.",
 };
 
 function CafeList() {
@@ -88,8 +88,8 @@ export default function ShopPage() {
       <div className="mt-8 grid gap-8 md:grid-cols-2">
         <section className="relative rounded-2xl bg-card p-7 pt-9 shadow-sm">
           <span className="washi -top-2 left-8 rotate-3" style={{ ["--tape" as string]: "#c4553a" }} />
-          <h2 className="font-display text-2xl font-semibold">Badges &amp; NFC tags</h2>
-          <p className="mt-1 text-sm text-ink-soft">Tap an NFC badge with any phone to play your music or video. No app needed.</p>
+          <h2 className="font-display text-2xl font-semibold">Badges &amp; Memory Badges</h2>
+          <p className="mt-1 text-sm text-ink-soft">A Memory Badge is a badge with NFC: tap it with any phone to play your music or video. No app needed.</p>
           <ul className="mt-5 divide-y divide-dashed divide-line">
             {BADGES.map((b) => (
               <li key={b.name} className="flex items-baseline justify-between gap-4 py-2.5">
@@ -98,6 +98,16 @@ export default function ShopPage() {
               </li>
             ))}
           </ul>
+          <h3 className="mt-5 text-sm font-semibold">NFC, added to a badge (badge price separate)</h3>
+          <ul className="mt-1 divide-y divide-dashed divide-line">
+            {NFC_PRICES.map((n) => (
+              <li key={n.name} className="flex items-baseline justify-between gap-4 py-2.5">
+                <span>{n.name}</span>
+                <span className="font-semibold">{formatRM(n.price)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-ink-soft">{NFC_RULE}</p>
         </section>
 
         {SHOP.map((g) => (

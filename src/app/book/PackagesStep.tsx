@@ -70,7 +70,7 @@ export function PackagesStep() {
           ))}
         </ul>
 
-        <h2 className="mt-10 font-display text-2xl font-semibold">Add a badge workshop</h2>
+        <h2 className="mt-10 font-display text-2xl font-semibold">Add a Memory Badge workshop</h2>
         <p className="text-sm text-ink-soft">Taken with a package above, which gives you your studio time.</p>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2">
           {PACKAGES.filter((p) => p.addOn).map((p) => (

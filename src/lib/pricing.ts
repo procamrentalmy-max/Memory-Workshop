@@ -11,7 +11,7 @@ export function orderPackages(order: Pick<Order, "packages">) {
   });
 }
 
-/** One studio-time package per person (add-ons such as the Badge workshop don't count). */
+/** One studio-time package per person (add-ons such as the Memory Badge workshop don't count). */
 export const peopleCount = (order: Pick<Order, "packages">) =>
   orderPackages(order).reduce((n, [p, q]) => n + (p.addOn ? 0 : q), 0);
 

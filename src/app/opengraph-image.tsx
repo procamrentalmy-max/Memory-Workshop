@@ -21,7 +21,7 @@ export default function OpengraphImage() {
             Turn your favourite moments into keepsakes.
           </div>
           <div style={{ fontSize: 28, color: "#6b6058", marginTop: 26 }}>
-            {`Workshops from ${formatRM(Math.min(...PACKAGES.map((p) => p.price)))} · NFC badges · photo prints`}
+            {`Workshops from ${formatRM(Math.min(...PACKAGES.map((p) => p.price)))} · Memory Badges · photo prints`}
           </div>
           <div style={{ display: "flex", alignItems: "center", marginTop: 36 }}>
             <div style={{ width: 54, height: 54, borderRadius: 10, background: "#b8492f", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, fontWeight: 700 }}>P</div>

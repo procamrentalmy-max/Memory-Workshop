@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BADGES, DRINKS, EXTRA_TIME_RULE, PACKAGES, PASTRIES, PRICING, SEED_COUPON, SHOP, formatRM } from "@/lib/data";
+import { BADGES, DRINKS, EXTRA_TIME_RULE, NFC_PRICES, NFC_RULE, PACKAGES, PASTRIES, PRICING, SEED_COUPON, SHOP, formatRM } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Badge workshop. Supplies, water and pastry tastings are free.",
+  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Memory Badge workshop. Supplies, water and pastry tastings are free.",
 };
 
 const TAPES = ["#c4553a", "#e0a93b", "#7d9a7e", "#3d5a80", "#5e3c2b"];
@@ -54,6 +54,16 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
+          <h3 className="mt-5 text-sm font-semibold">NFC, added to a badge (badge price separate)</h3>
+          <ul className="mt-1 divide-y divide-dashed divide-line text-sm">
+            {NFC_PRICES.map((n) => (
+              <li key={n.name} className="flex items-baseline justify-between gap-4 py-2">
+                <span>{n.name}</span>
+                <span className="font-semibold">{formatRM(n.price)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-ink-soft">{NFC_RULE}</p>
         </section>
         {SHOP.map((g) => (
           <section key={g.group} className="relative rounded-2xl bg-card p-8 shadow-sm">
