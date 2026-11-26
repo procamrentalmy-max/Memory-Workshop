@@ -69,6 +69,36 @@ their photo pages and press **Send to print** (`/print`) with their name and tab
 the worker page as an *In store* order; they pay at the counter (POS) as usual, and **Bill settled** deletes their photos.
 Changing the code on the admin page stops old QR codes from working.
 
+### NFC video tags
+
+Each NFC tag holds a link like `https://your-site/v/k7q2mxab`. Buyers open it (tap the tag, or type the link) and add a
+video with the 6-character **setup code** printed on the card that comes with the tag. The video is prepared **in their
+browser** (the 10 seconds they choose, 720p H.264 MP4 with the original sound, about 3 MB) using Mediabunny, then uploaded
+straight to storage. After that, tapping the tag plays the video full screen. The owner's phone remembers the code so they
+can change the video; anyone else needs the card. Ten wrong codes lock a tag for 15 minutes.
+
+Admin page → **NFC video tags**: make tags in batches, download the links and setup codes (CSV) to write onto tags and
+print on cards, see views and storage, remove a video or turn a tag off. Write tags with an app such as *NFC Tools*
+(Write → Add a record → URL → paste the link → tap the tag). NTAG213 tags are enough.
+
+**Videos are stored in Cloudflare R2, not Supabase** (10 GB free, and no charge for views). The tag list itself is in
+the Supabase database. To switch it on:
+
+1. Cloudflare dashboard → R2 → create a bucket (e.g. `tag-videos`).
+2. Bucket → Settings → **Public access**: allow the r2.dev address (or connect your own domain, better for production).
+   Copy the public address.
+3. Bucket → Settings → **CORS policy**:
+   ```json
+   [{ "AllowedOrigins": ["https://memory-workshop.vercel.app", "https://your-domain"],
+      "AllowedMethods": ["PUT", "GET", "HEAD"], "AllowedHeaders": ["content-type"], "MaxAgeSeconds": 3600 }]
+   ```
+4. R2 → Manage API tokens → create a token with **Object Read & Write** on that bucket. Copy the Access Key ID,
+   Secret Access Key and your Account ID.
+5. Vercel → Settings → Environment Variables: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`,
+   `R2_PUBLIC_URL`, then redeploy.
+
+Use your own domain (`NEXT_PUBLIC_SITE_URL`) for tag links before selling tags: the link is written into the tag for good.
+
 ### Customer photo retention
 
 The rules are in the database function `customer_photo_status()`:

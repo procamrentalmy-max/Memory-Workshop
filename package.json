@@ -9,7 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@mediabunny/aac-encoder": "^1.65.2",
     "@supabase/supabase-js": "^2.119.2",
+    "aws4fetch": "^1.0.20",
+    "mediabunny": "^1.65.2",
     "next": "16.4.6",
     "pdf-lib": "^1.17.1",
     "qrcode": "^1.5.4",

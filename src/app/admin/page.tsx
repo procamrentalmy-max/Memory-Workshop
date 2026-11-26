@@ -9,7 +9,10 @@ import { layout } from "@/lib/collage";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { PHOTO_KEEP_DAYS, getBookings, getCafeMenu, getElements, getPhotoCleanupReport, getStudioCode } from "@/lib/store";
 import { elementSrc, siteFileSrc } from "@/lib/types";
-import { changeStudioCode, removeElement, saveElement } from "./actions";
+import { listTags, tagStats } from "@/lib/tags";
+import { tagStorage } from "@/lib/tagStorage";
+import { changeStudioCode, createTagBatch, removeElement, removeTagVideo, saveElement, toggleTag } from "./actions";
+import { CopyButton } from "./CopyButton";
 import { MenuUploader } from "./MenuUploader";
 import { PhotoCleanupButton } from "./PhotoCleanupButton";
 import { UploadForm } from "./UploadForm";
@@ -114,9 +117,7 @@ async function PhotoCleanup() {
 async function StudioQr() {
   await connection();
   const code = await getStudioCode();
-  const h = await headers();
-  const base = process.env.NEXT_PUBLIC_SITE_URL || `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
-  const url = `${base.replace(/\/$/, "")}/collage?studio=${code}`;
+  const url = `${await siteBase()}/collage?studio=${code}`;
   const svg = await QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#2a2420", light: "#ffffff" } });
   return (
     <div className="mt-4 flex flex-wrap items-start gap-6 rounded-xl border border-line bg-card p-4">
@@ -133,6 +134,114 @@ async function StudioQr() {
           </form>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Our public web address, for links printed on QR codes and written into NFC tags. */
+async function siteBase() {
+  const h = await headers();
+  return (process.env.NEXT_PUBLIC_SITE_URL || `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`).replace(/\/$/, "");
+}
+
+const R2_FREE_BYTES = 10 * 1024 ** 3;
+
+async function NfcTags() {
+  await connection();
+  const [tags, stats, base] = await Promise.all([listTags(200), tagStats(), siteBase()]);
+  const storage = tagStorage();
+  const avg = stats.videos ? stats.bytes / stats.videos : 3 * 1024 ** 2;
+  const fitMore = Math.max(0, Math.floor((R2_FREE_BYTES - stats.bytes) / avg));
+  const batches = [...new Set(tags.map((t) => t.batch).filter((b): b is string => !!b))];
+  return (
+    <div className="mt-4 space-y-5">
+      {!storage ? (
+        <p className="rounded-xl border border-accent/40 bg-accent/5 p-4 text-sm">
+          <strong>Video storage isn&apos;t connected yet.</strong> Buyers can&apos;t add videos until the Cloudflare R2 keys are added
+          in Vercel (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_PUBLIC_URL). See the README.
+        </p>
+      ) : (
+        <p className="text-xs text-ink-soft">Videos are stored in {storage.name}.</p>
+      )}
+      {base.includes("vercel.app") && (
+        <p className="rounded-xl bg-mustard/15 p-4 text-sm">
+          These links use <strong>{base}</strong>. Connect your own domain (and set NEXT_PUBLIC_SITE_URL) before writing tags
+          you sell, so they keep working if the website ever moves.
+        </p>
+      )}
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          ["Tags made", String(stats.tags)],
+          ["With a video", String(stats.videos)],
+          ["Video storage", `${(stats.bytes / 1024 ** 2).toFixed(1)} MB`],
+          ["Views", String(stats.views)],
+        ].map(([k, v]) => (
+          <div key={k} className="rounded-xl bg-card p-3"><dt className="text-xs text-ink-soft">{k}</dt><dd className="font-display text-2xl font-semibold">{v}</dd></div>
+        ))}
+      </dl>
+      <p className="text-xs text-ink-soft">
+        About {fitMore.toLocaleString()} more videos fit in R2&apos;s free 10 GB at {(avg / 1024 ** 2).toFixed(1)} MB each. Views are free on R2.
+      </p>
+
+      <form action={createTagBatch} className="flex flex-wrap items-end gap-3 rounded-xl border border-line bg-card p-4">
+        <label className="text-sm font-semibold">
+          Make new tags
+          <input name="count" type="number" min={1} max={200} defaultValue={10} required className="mt-1 block w-24 rounded-md border border-line px-2 py-1.5 font-normal" />
+        </label>
+        <button className="btn btn-primary !px-4 !py-2 text-sm">Create</button>
+        <p className="w-full text-xs text-ink-soft">
+          Each tag gets its own link (write it onto the NFC tag) and a setup code (print it on the card that goes with the tag).
+        </p>
+      </form>
+
+      {tags.length > 0 && (
+        <>
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <span className="font-semibold">Download links &amp; codes (CSV):</span>
+            <a href="/api/admin/tags" className="text-accent underline">all tags</a>
+            {batches.slice(0, 5).map((b) => (
+              <a key={b} href={`/api/admin/tags?batch=${encodeURIComponent(b)}`} className="text-accent underline">batch {b}</a>
+            ))}
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-line bg-card">
+            <table className="w-full min-w-[760px] text-left text-sm">
+              <thead className="bg-paper-2 text-ink-soft">
+                <tr>{["Link (write onto the tag)", "Setup code", "Video", "Views", ""].map((h) => <th key={h} className="px-3 py-2 font-semibold">{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {tags.map((t) => (
+                  <tr key={t.id} className={`border-t border-line align-top ${t.disabled ? "opacity-50" : ""}`}>
+                    <td className="px-3 py-2">
+                      <a href={`/v/${t.id}`} target="_blank" rel="noreferrer" className="font-mono text-xs underline">{base}/v/{t.id}</a>
+                      <span className="ml-2"><CopyButton text={`${base}/v/${t.id}`} /></span>
+                      <span className="block text-[11px] text-ink-soft">batch {t.batch ?? "—"}</span>
+                    </td>
+                    <td className="px-3 py-2 font-mono">{t.setupCode}</td>
+                    <td className="px-3 py-2 text-xs">
+                      {t.videoFile
+                        ? `Added ${new Date(t.videoUpdatedAt!).toLocaleDateString("en-MY", { day: "numeric", month: "short", timeZone: "Asia/Kuala_Lumpur" })} · ${((t.videoBytes ?? 0) / 1024 ** 2).toFixed(1)} MB · ${t.videoSeconds ?? "?"} s`
+                        : <span className="text-ink-soft">Not set up yet</span>}
+                    </td>
+                    <td className="px-3 py-2">{t.views}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-wrap gap-3 text-xs font-semibold">
+                        {t.videoFile && (
+                          <form action={removeTagVideo}><input type="hidden" name="id" value={t.id} /><button className="text-accent hover:underline">Remove video</button></form>
+                        )}
+                        <form action={toggleTag}>
+                          <input type="hidden" name="id" value={t.id} />
+                          <input type="hidden" name="disabled" value={t.disabled ? "0" : "1"} />
+                          <button className="text-ink-soft hover:underline">{t.disabled ? "Turn on" : "Turn off"}</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -236,6 +345,16 @@ export default function AdminPage() {
           straight away. Only this code can send print orders, so random visitors online can&apos;t.
         </p>
         <Suspense fallback={<p className="mt-4 text-ink-soft">Loading…</p>}><StudioQr /></Suspense>
+      </section>
+
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-semibold">NFC video tags</h2>
+        <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+          Customers buy a tag, open its link (by tapping it, or typing the link) and add a 10-second video with the setup code
+          from their card. After that, tapping the tag plays the video. Videos are kept for good and stored in Cloudflare R2,
+          not Supabase.
+        </p>
+        <Suspense fallback={<p className="mt-4 text-ink-soft">Loading…</p>}><NfcTags /></Suspense>
       </section>
 
       <section className="mt-14">

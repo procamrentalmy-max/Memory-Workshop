@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { STUDIO } from "@/lib/data";
 
 const NAV = [
@@ -13,8 +13,25 @@ const NAV = [
   { href: "/collage", label: "Photo Collage" },
 ];
 
+/** Desktop links; the current page is highlighted. */
+function NavLinks({ pathname }: { pathname: string | null }) {
+  return NAV.map((item) => (
+    <Link
+      key={item.href}
+      href={item.href}
+      className={`text-sm font-semibold transition-colors hover:text-accent ${pathname === item.href ? "text-accent" : "text-ink"}`}
+    >
+      {item.label}
+    </Link>
+  ));
+}
+
+// Reading the address needs Suspense on pages whose address varies (such as /v/<tag>).
+function CurrentNavLinks() {
+  return <NavLinks pathname={usePathname()} />;
+}
+
 export function Header() {
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
   return (
@@ -31,17 +48,9 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-6 lg:flex" aria-label="Main">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`text-sm font-semibold transition-colors hover:text-accent ${
-                pathname === item.href ? "text-accent" : "text-ink"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          <Suspense fallback={<NavLinks pathname={null} />}>
+            <CurrentNavLinks />
+          </Suspense>
           <Link href="/book" className="btn btn-primary !py-2 text-sm">
             Book a Session
           </Link>
