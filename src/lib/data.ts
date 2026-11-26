@@ -43,7 +43,8 @@ export const PACKAGES: Package[] = [
   },
   {
     id: "badge", name: "Badge workshop", price: 15, sheets: 0,
-    includes: ["Make your own badge", "1 NFC tag free"], note: "More NFC badges at the usual badge prices",
+    includes: ["Make your own badge", "1 NFC tag free, with a video of up to 30 seconds"],
+    note: "Studio time is not included and is charged separately. More NFC badges at the usual badge prices.",
   },
 ];
 export const PACKAGE_IDS = PACKAGES.map((p) => p.id);
@@ -134,7 +135,7 @@ export const SEED_COUPON = "Every drink at the regular price comes with a seed p
 export const FAQS = [
   {
     q: "Which package should I choose?",
-    a: "Basic (30 minutes for RM8, or 1 hour for RM14) is studio time with our shared tools and stationery. Memory Maker (RM21) adds an NFC badge and two A5 photo prints. Complete Memory (RM35) adds an A4 print and a 15-page scrapbook too. Just want a badge? The Badge workshop is RM15 with one NFC tag free.",
+    a: "Basic (30 minutes for RM8, or 1 hour for RM14) is studio time with our shared tools and stationery. Memory Maker (RM21) adds an NFC badge and two A5 photo prints. Complete Memory (RM35) adds an A4 print and a 15-page scrapbook too. Just want a badge? The Badge workshop is RM15 with one NFC tag free (a video of up to 30 seconds); studio time is charged separately.",
   },
   {
     q: "How does extra time work?",
@@ -154,7 +155,7 @@ export const FAQS = [
   },
   {
     q: "Is there food and coffee?",
-    a: `Snacks and water are free flow. Add an Americano to your workshop for ${formatRM(DRINKS[0].sessionPrice)} or a latte or cappuccino for ${formatRM(DRINKS[1].sessionPrice)}, and try our pastries. ${SEED_COUPON}`,
+    a: `Our café serves coffee, matcha, chocolate and pastries. Add an Americano to your workshop for ${formatRM(DRINKS[0].sessionPrice)} or a latte or cappuccino for ${formatRM(DRINKS[1].sessionPrice)}. ${SEED_COUPON}`,
   },
   {
     q: "What are NFC badges?",

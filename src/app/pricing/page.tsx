@@ -4,7 +4,7 @@ import { BADGES, DRINKS, EXTRA_TIME_RULE, PACKAGES, PASTRIES, PRICING, SEED_COUP
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Badge workshop. Stickers, stationery, snacks and water are free.",
+  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Badge workshop. Stickers and stationery are free.",
 };
 
 const TAPES = ["#c4553a", "#e0a93b", "#7d9a7e", "#3d5a80", "#5e3c2b"];
@@ -15,7 +15,7 @@ export default function PricingPage() {
       <p className="font-hand text-2xl text-accent">simple &amp; affordable</p>
       <h1 className="font-display text-4xl font-semibold sm:text-5xl">Pricing</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">
-        One package per person. Stickers, stationery, snacks and water are free in every workshop.
+        One package per person. Stickers and stationery are free in every workshop.
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

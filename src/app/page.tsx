@@ -26,7 +26,7 @@ export default function Home() {
         <div>
           <p className="font-hand text-2xl text-accent">a hands-on memory creation studio</p>
           <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-sage/20 px-3 py-1 text-sm font-semibold text-[#3f5e41] ring-1 ring-sage/40">
-            <span aria-hidden>✂</span> Free stickers, stationery, snacks &amp; water
+            <span aria-hidden>✂</span> Free stickers &amp; stationery in every workshop
           </p>
           <h1 className="mt-2 font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
             Turn your favourite moments into keepsakes you made yourself.
@@ -49,8 +49,8 @@ export default function Home() {
               <dd className="font-display text-2xl font-semibold">{formatRM(PRICING.extraHalfHour)}</dd>
             </div>
             <div>
-              <dt className="text-sm text-ink-soft">Snacks &amp; water</dt>
-              <dd className="font-display text-2xl font-semibold text-[#3f5e41]">Free flow</dd>
+              <dt className="text-sm text-ink-soft">Stickers &amp; stationery</dt>
+              <dd className="font-display text-2xl font-semibold text-[#3f5e41]">Free</dd>
             </div>
           </dl>
         </div>
@@ -163,13 +163,13 @@ export default function Home() {
             <p className="font-hand text-2xl text-mustard">while you create…</p>
             <h2 className="mt-1 font-display text-3xl font-semibold">Shop &amp; café</h2>
             <p className="mt-3 text-paper/80">
-              Papers, stickers, ribbons and cutters are yours to use, with free-flow snacks and water. Add a coffee to your
+              Papers, stickers, ribbons and cutters are yours to use for free. Add a coffee to your
               workshop from {formatRM(cheapestDrink)}, try a pastry, and take home a badge or two.
             </p>
             <Link href="/shop" className="btn mt-6 bg-paper text-ink hover:bg-white">Visit the shop &amp; café</Link>
           </div>
           <ul className="grid grid-cols-2 gap-3 text-sm">
-            {([["Stickers & ribbons", true], ["Papers & cutters", true], ["Snacks & water", true], ["Coffee & matcha", false], ["Pastries", false], ["Badges & NFC", false]] as const).map(([x, free]) => (
+            {([["Stickers & ribbons", true], ["Papers & cutters", true], ["Stamps & pens", true], ["Coffee & matcha", false], ["Pastries", false], ["Badges & NFC", false]] as const).map(([x, free]) => (
               <li key={x} className={`flex items-center justify-between gap-2 rounded-lg border px-4 py-3 ${free ? "border-mustard/60" : "border-paper/20"}`}>
                 {x}
                 {free && <span className="rounded-full bg-mustard px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink">Free</span>}

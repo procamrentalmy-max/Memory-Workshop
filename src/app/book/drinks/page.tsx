@@ -26,7 +26,7 @@ export default function DrinksStep() {
         <p className="font-hand text-2xl text-accent">step three</p>
         <h1 className="font-display text-4xl font-semibold sm:text-5xl">Choose your drink</h1>
         <p className="mt-3 text-ink-soft">
-          Snacks and water are free flow. Add a coffee to your session for less: made fresh at the studio bar and ready when you
+          Add a coffee to your workshop for less: made fresh at the studio bar and ready when you
           arrive. You can skip this and order at the studio.
         </p>
 
