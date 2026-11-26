@@ -85,9 +85,12 @@ export type Product = {
 
 /** Free to use, as much as you like, during every session. */
 export const FREE_SUPPLIES: { group: string; items: string[] }[] = [
-  { group: "Papers & stickers", items: ["Decorative and textured papers", "Themed sticker sheets", "Ribbons", "Washi tape"] },
-  { group: "Tools & accessories", items: ["Cutters and corner punches", "Gel pens in every colour", "Stamps", "Embellishments and accessories"] },
+  { group: "Cutters & tapes", items: ["Shaped cutters and corner punches", "Washi and decorative tapes", "Stamps and gel pens", "Themed sticker sheets"] },
+  { group: "Ribbons & accessories", items: ["Ribbons in every colour", "Embellishments and accessories", "Decorative papers", "Glue, scissors and the basics"] },
 ];
+
+/** Free in every workshop (shown as perks). */
+export const FREE_PERKS = "Every workshop comes with a huge selection of free cutters, ribbons, tapes and accessories, free water, and a free pastry tasting every 30 minutes.";
 
 /** Badges and NFC tags (tap with a phone to play music or a video). */
 export const BADGES: Product[] = [
@@ -155,7 +158,7 @@ export const FAQS = [
   },
   {
     q: "Is there food and coffee?",
-    a: `Our café serves coffee, matcha, chocolate and pastries. Add an Americano to your workshop for ${formatRM(DRINKS[0].sessionPrice)} or a latte or cappuccino for ${formatRM(DRINKS[1].sessionPrice)}. ${SEED_COUPON}`,
+    a: `Water is free, and we bring round a free pastry tasting every 30 minutes. Our café serves coffee, matcha, chocolate and pastries. Add an Americano to your workshop for ${formatRM(DRINKS[0].sessionPrice)} or a latte or cappuccino for ${formatRM(DRINKS[1].sessionPrice)}. ${SEED_COUPON}`,
   },
   {
     q: "What are NFC badges?",

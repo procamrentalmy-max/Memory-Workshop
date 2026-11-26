@@ -8,7 +8,7 @@ import { siteFileSrc, type CafeMenu } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Shop & Café",
-  description: "Free stickers and stationery in every workshop, plus NFC badges, photo prints, scrapbooks, coffee and pastries at the studio.",
+  description: "Free cutters, ribbons, tapes, accessories, water and pastry tastings in every workshop, plus NFC badges, photo prints, scrapbooks and coffee.",
 };
 
 function CafeList() {
@@ -64,10 +64,10 @@ export default function ShopPage() {
       <section className="relative mt-10 overflow-hidden rounded-2xl bg-sage/15 p-7 ring-1 ring-sage/40 sm:p-9">
         <span className="absolute -right-3 top-6 rotate-12 rounded-md bg-accent px-4 py-1 font-display text-lg font-bold text-accent-ink shadow">FREE</span>
         <p className="font-hand text-2xl text-[#3f5e41]">included in every workshop</p>
-        <h2 className="mt-1 font-display text-3xl font-semibold">Free stickers &amp; stationery</h2>
+        <h2 className="mt-1 font-display text-3xl font-semibold">Free supplies, water &amp; pastry tastings</h2>
         <p className="mt-2 max-w-2xl text-ink-soft">
-          Use as many papers, stickers, ribbons and cutters as you like while you create.
-          No extra charge, no counting.
+          Choose from a huge selection of cutters, ribbons, tapes and accessories, and use as many as you like. Water is
+          free, and we bring round a pastry tasting every 30 minutes. No extra charge, no counting.
         </p>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           {FREE_SUPPLIES.map((g) => (

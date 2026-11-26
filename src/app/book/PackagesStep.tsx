@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { CollageView } from "@/components/CollageView";
 import { ShapesView } from "@/components/ShapesView";
-import { EXTRA_TIME_RULE, PACKAGES, PRICING, formatRM } from "@/lib/data";
+import { EXTRA_TIME_RULE, FREE_PERKS, PACKAGES, PRICING, formatRM } from "@/lib/data";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
 import { includedSheets, packagesTotal, peopleCount, photoCount } from "@/lib/pricing";
 import { ActionBar, nextBtn } from "./ActionBar";
@@ -42,7 +42,7 @@ export function PackagesStep() {
       <div className="min-w-0">
         <p className="font-hand text-2xl text-accent">step one</p>
         <h1 className="font-display text-4xl font-semibold sm:text-5xl">Choose your packages</h1>
-        <p className="mt-3 max-w-2xl text-ink-soft">One package per person. {EXTRA_TIME_RULE}</p>
+        <p className="mt-3 max-w-2xl text-ink-soft">One package per person. {FREE_PERKS} {EXTRA_TIME_RULE}</p>
 
         <ul className="mt-8 grid gap-4 sm:grid-cols-2">
           {PACKAGES.map((p) => (
