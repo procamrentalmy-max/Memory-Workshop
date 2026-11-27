@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { BADGES, BRACELETS, BRACELET_NOTE, DRINKS, FREE_SUPPLIES, NFC_PRICES, NFC_RULE, PASTRIES, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
+import { BADGES, BRACELETS, BRACELET_NOTE, DRINKS, NEW_ACCOUNT_GIFT, FREE_SUPPLIES, NFC_PRICES, NFC_RULE, PASTRIES, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
 import { getCafeMenu } from "@/lib/store";
 import { siteFileSrc, type CafeMenu } from "@/lib/types";
 
@@ -109,7 +109,7 @@ export default function ShopPage() {
           </ul>
           <p className="mt-3 text-xs text-ink-soft">{NFC_RULE}</p>
           <h3 className="mt-5 text-sm font-semibold">Bracelets</h3>
-          <p className="mt-0.5 text-xs text-ink-soft">{BRACELET_NOTE}</p>
+          <p className="mt-0.5 text-xs text-ink-soft">{BRACELET_NOTE} {NEW_ACCOUNT_GIFT}</p>
           <ul className="mt-1 divide-y divide-dashed divide-line">
             {BRACELETS.map((b) => (
               <li key={b.name} className="flex items-baseline justify-between gap-4 py-2.5">

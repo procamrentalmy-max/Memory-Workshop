@@ -46,11 +46,21 @@ async function MyPage({ searchParams }: { searchParams: PageProps<"/me">["search
   const { customer } = session;
   const [badges, orders] = await Promise.all([customerBadges(customer.id), customerOrders(customer.id)]);
   const firstName = customer.name.split(" ")[0];
+  // A free bracelet for a new account made on arrival: shown on the day the account was created.
+  const klDay = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: KL });
+  const newToday = klDay(new Date(customer.createdAt)) === klDay(new Date());
 
   return (
     <>
       <p className="font-hand text-2xl text-accent">{welcome ? "your account is ready" : "welcome back"}</p>
       <h1 className="font-display text-3xl font-semibold sm:text-4xl">Hi, {firstName}</h1>
+
+      {newToday && (
+        <section className="mt-6 rounded-2xl bg-mustard/20 p-5 ring-1 ring-mustard/50">
+          <h2 className="font-display text-xl font-semibold">Welcome gift: a free bracelet</h2>
+          <p className="mt-1 text-sm">Show this to our staff at the counter to make your free bracelet.</p>
+        </section>
+      )}
 
       {params.password === "saved" && (
         <p role="status" className="mt-6 rounded-2xl bg-sage/20 px-5 py-3 font-semibold text-[#3f5e41]">Your new password is saved.</p>

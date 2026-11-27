@@ -16,6 +16,9 @@ export default function JoinPage() {
         It takes a minute. Your account keeps your Memory Badges, prints and bookings together, and opens straight from
         your home screen.
       </p>
+      <p className="mt-3 rounded-xl bg-mustard/20 px-4 py-2.5 text-sm font-semibold">
+        Creating your account at the studio? Show your new page to our staff and get a free bracelet.
+      </p>
       <div className="mt-6 rounded-2xl bg-card p-6 shadow-sm">
         <JoinForm />
       </div>

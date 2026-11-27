@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BADGES, BRACELETS, BRACELET_NOTE, DRINKS, EXTRA_TIME_RULE, NFC_PRICES, NFC_RULE, PACKAGES, PASTRIES, PRICING, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
+import { BADGES, BRACELETS, BRACELET_NOTE, DRINKS, NEW_ACCOUNT_GIFT, EXTRA_TIME_RULE, NFC_PRICES, NFC_RULE, PACKAGES, PASTRIES, PRICING, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Memory Badge workshop. Every package includes a bracelet; supplies, water and pastry tastings are free.",
+  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Memory Badge workshop. Supplies, water and pastry tastings are free, and new members get a free bracelet.",
 };
 
 const TAPES = ["#c4553a", "#e0a93b", "#7d9a7e", "#3d5a80", "#5e3c2b"];
@@ -15,8 +15,8 @@ export default function PricingPage() {
       <p className="font-hand text-2xl text-accent">simple &amp; affordable</p>
       <h1 className="font-display text-4xl font-semibold sm:text-5xl">Pricing</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">
-        One package per person, and every package includes a bracelet. In every workshop, a huge selection of cutters,
-        ribbons, tapes and accessories is free, with free water and a pastry tasting every 30 minutes.
+        One package per person. In every workshop, a huge selection of cutters, ribbons, tapes and accessories is free,
+        with free water and a pastry tasting every 30 minutes. {NEW_ACCOUNT_GIFT}
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -65,7 +65,7 @@ export default function PricingPage() {
           </ul>
           <p className="mt-3 text-xs text-ink-soft">{NFC_RULE}</p>
           <h3 className="mt-5 text-sm font-semibold">Bracelets</h3>
-          <p className="mt-0.5 text-xs text-ink-soft">{BRACELET_NOTE}</p>
+          <p className="mt-0.5 text-xs text-ink-soft">{BRACELET_NOTE} {NEW_ACCOUNT_GIFT}</p>
           <ul className="mt-1 divide-y divide-dashed divide-line text-sm">
             {BRACELETS.map((b) => (
               <li key={b.name} className="flex items-baseline justify-between gap-4 py-2">

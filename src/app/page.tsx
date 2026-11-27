@@ -166,7 +166,7 @@ export default function Home() {
             <h2 className="mt-1 font-display text-3xl font-semibold">Shop &amp; café</h2>
             <p className="mt-3 text-paper/80">
               Choose from a huge selection of cutters, ribbons, tapes and accessories, all free, with free water and a pastry
-              tasting every 30 minutes. Every package includes a bracelet. Add a coffee to your
+              tasting every 30 minutes. New here? Create your account when you arrive and get a free bracelet. Add a coffee to your
               workshop from {formatRM(cheapestDrink)}, try a pastry, and take home a badge or two.
             </p>
             <Link href="/shop" className="btn mt-6 bg-paper text-ink hover:bg-white">Visit the shop &amp; café</Link>

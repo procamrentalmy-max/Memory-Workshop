@@ -34,14 +34,14 @@ export type Package = {
 
 /** Workshop packages, one per person. */
 export const PACKAGES: Package[] = [
-  { id: "basic30", name: "Basic – 30 minutes", price: 8, sheets: 0, includes: ["30 minutes in the studio", "Shared tools, stationery and stickers", "1 bracelet"] },
-  { id: "basic60", name: "Basic – 1 hour", price: 14, sheets: 0, includes: ["1 hour in the studio", "Shared tools, stationery and stickers", "1 bracelet"] },
+  { id: "basic30", name: "Basic – 30 minutes", price: 8, sheets: 0, includes: ["30 minutes in the studio", "Shared tools, stationery and stickers"] },
+  { id: "basic60", name: "Basic – 1 hour", price: 14, sheets: 0, includes: ["1 hour in the studio", "Shared tools, stationery and stickers"] },
   {
-    id: "memory-maker", name: "Memory Maker", price: 21, sheets: 1, typical: "Most guests take 1.5–2 hours",
+    id: "memory-maker", name: "Memory Maker", price: 25, sheets: 1, typical: "Most guests take 1.5–2 hours",
     includes: ["1 hour in the studio", "1 Memory Badge (a badge with NFC)", "2 A5 photo prints", "1 bracelet"],
   },
   {
-    id: "complete", name: "Complete Memory", price: 35, sheets: 2, typical: "Most guests take 2–2.5 hours",
+    id: "complete", name: "Complete Memory", price: 39, sheets: 2, typical: "Most guests take 2–2.5 hours",
     includes: ["1 hour in the studio", "1 Memory Badge (a badge with NFC)", "2 A5 photo prints and 1 A4 print", "15-page scrapbook", "1 bracelet"],
   },
   {
@@ -91,8 +91,10 @@ export type Product = {
 export const priceLabel = (p: Pick<Product, "price" | "maxPrice">) =>
   p.maxPrice ? `${formatRM(p.price)}–${formatRM(p.maxPrice).replace(/^RM/, "")}` : p.price === 0 ? "Free" : formatRM(p.price);
 
-/** Bracelet making: every package includes one bracelet; extra bracelets are priced here. */
-export const BRACELET_NOTE = "Every package includes one bracelet.";
+/** Bracelets: in Memory Maker and Complete Memory, and free for a new account made at the studio; extras priced here. */
+export const BRACELET_NOTE = "Memory Maker and Complete Memory include one bracelet.";
+/** A welcome gift for customers who create their account when they arrive. */
+export const NEW_ACCOUNT_GIFT = "New here? Create your account when you arrive and get a free bracelet.";
 export const BRACELETS: Product[] = [
   { name: "1 extra bracelet", price: 3.5 },
   { name: "2 extra bracelets", price: 5.5 },
@@ -169,7 +171,7 @@ export const SEED_COUPON = "Every drink at the regular price comes with a seed p
 export const FAQS = [
   {
     q: "Which package should I choose?",
-    a: "Basic (30 minutes for RM8, or 1 hour for RM14) is studio time with our shared tools and stationery. Memory Maker (RM21) adds a Memory Badge (a badge with NFC) and two A5 photo prints. Complete Memory (RM35) adds an A4 print and a 15-page scrapbook too. Want to make a Memory Badge? Add the Memory Badge workshop (RM15, with a video of up to 30 seconds) to a Basic package for your studio time.",
+    a: "Basic (30 minutes for RM8, or 1 hour for RM14) is studio time with our shared tools and stationery. Memory Maker (RM25) adds a Memory Badge (a badge with NFC), two A5 photo prints and a bracelet. Complete Memory (RM39) adds an A4 print and a 15-page scrapbook too. Want to make a Memory Badge? Add the Memory Badge workshop (RM15, with a video of up to 30 seconds) to a Basic package for your studio time.",
   },
   {
     q: "How does extra time work?",
