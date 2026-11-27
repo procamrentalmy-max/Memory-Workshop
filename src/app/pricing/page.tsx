@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BADGES, BRACELETS, BRACELET_NOTE, DRINKS, NEW_ACCOUNT_GIFT, EXTRA_TIME_RULE, NFC_PRICES, NFC_RULE, PACKAGES, PASTRIES, PRICING, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
+import { BADGES, BRACELETS, BRACELET_NOTE, DRINKS, HOSTING_PLANS, NEW_ACCOUNT_GIFT, EXTRA_TIME_RULE, NFC_PRICES, NFC_RULE, PACKAGES, PASTRIES, PRICING, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -45,7 +45,7 @@ export default function PricingPage() {
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <section className="relative rounded-2xl bg-card p-8 shadow-sm">
           <span className="washi -top-2 left-8 rotate-3" style={{ ["--tape" as string]: "#7d9a7e" }} />
-          <h2 className="font-display text-2xl font-semibold">Badges, NFC &amp; bracelets</h2>
+          <h2 className="font-display text-2xl font-semibold">Badges, NFC, bracelets &amp; necklaces</h2>
           <ul className="mt-4 divide-y divide-dashed divide-line text-sm">
             {BADGES.map((b) => (
               <li key={b.name} className="flex items-baseline justify-between gap-4 py-2">
@@ -64,7 +64,16 @@ export default function PricingPage() {
             ))}
           </ul>
           <p className="mt-3 text-xs text-ink-soft">{NFC_RULE}</p>
-          <h3 className="mt-5 text-sm font-semibold">Bracelets</h3>
+          <h3 className="mt-5 text-sm font-semibold">Video hosting (keeps your Memory Badge videos playing)</h3>
+          <ul className="mt-1 divide-y divide-dashed divide-line text-sm">
+            {HOSTING_PLANS.map((h) => (
+              <li key={h.name} className="flex items-baseline justify-between gap-4 py-2">
+                <span>{h.name}{(h.note || h.perMonth) && <span className="block text-xs text-ink-soft">{h.note ?? h.perMonth}</span>}</span>
+                <span className="font-semibold">{formatRM(h.price)}</span>
+              </li>
+            ))}
+          </ul>
+          <h3 className="mt-5 text-sm font-semibold">Bracelets &amp; necklaces</h3>
           <p className="mt-0.5 text-xs text-ink-soft">{BRACELET_NOTE} {NEW_ACCOUNT_GIFT}</p>
           <ul className="mt-1 divide-y divide-dashed divide-line text-sm">
             {BRACELETS.map((b) => (

@@ -16,7 +16,8 @@ export default function WelcomePage() {
         <p className="font-hand text-2xl text-accent">studio staff</p>
         <h1 className="font-display text-4xl font-semibold">Welcome QR</h1>
         <p className="mt-2 text-ink-soft">
-          For a customer&apos;s first visit. <Link href="/worker" className="underline">Back to print orders</Link>
+          For a customer&apos;s first visit. <Link href="/worker" className="underline">Back to print orders</Link> ·{" "}
+          <Link href="/worker/sop" className="underline">SOP &amp; what to say</Link>
         </p>
       </div>
       <div className="mt-8 grid items-start gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] print:block">

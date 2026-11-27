@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { BADGES, BRACELETS, BRACELET_NOTE, DRINKS, NEW_ACCOUNT_GIFT, FREE_SUPPLIES, NFC_PRICES, NFC_RULE, PASTRIES, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
+import { BADGES, BRACELETS, BRACELET_NOTE, DRINKS, HOSTING_PLANS, NEW_ACCOUNT_GIFT, FREE_SUPPLIES, NFC_PRICES, NFC_RULE, PASTRIES, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
 import { getCafeMenu } from "@/lib/store";
 import { siteFileSrc, type CafeMenu } from "@/lib/types";
 
@@ -88,7 +88,7 @@ export default function ShopPage() {
       <div className="mt-8 grid gap-8 md:grid-cols-2">
         <section className="relative rounded-2xl bg-card p-7 pt-9 shadow-sm">
           <span className="washi -top-2 left-8 rotate-3" style={{ ["--tape" as string]: "#c4553a" }} />
-          <h2 className="font-display text-2xl font-semibold">Badges, Memory Badges &amp; bracelets</h2>
+          <h2 className="font-display text-2xl font-semibold">Badges, Memory Badges, bracelets &amp; necklaces</h2>
           <p className="mt-1 text-sm text-ink-soft">A Memory Badge is a badge with NFC: tap it with any phone to play your music or video. No app needed.</p>
           <ul className="mt-5 divide-y divide-dashed divide-line">
             {BADGES.map((b) => (
@@ -108,7 +108,16 @@ export default function ShopPage() {
             ))}
           </ul>
           <p className="mt-3 text-xs text-ink-soft">{NFC_RULE}</p>
-          <h3 className="mt-5 text-sm font-semibold">Bracelets</h3>
+          <h3 className="mt-5 text-sm font-semibold">Video hosting (keeps your Memory Badge videos playing)</h3>
+          <ul className="mt-1 divide-y divide-dashed divide-line">
+            {HOSTING_PLANS.map((h) => (
+              <li key={h.name} className="flex items-baseline justify-between gap-4 py-2.5">
+                <span>{h.name}{(h.note || h.perMonth) && <span className="block text-xs text-ink-soft">{h.note ?? h.perMonth}</span>}</span>
+                <span className="font-semibold">{formatRM(h.price)}</span>
+              </li>
+            ))}
+          </ul>
+          <h3 className="mt-5 text-sm font-semibold">Bracelets &amp; necklaces</h3>
           <p className="mt-0.5 text-xs text-ink-soft">{BRACELET_NOTE} {NEW_ACCOUNT_GIFT}</p>
           <ul className="mt-1 divide-y divide-dashed divide-line">
             {BRACELETS.map((b) => (

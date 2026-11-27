@@ -40,6 +40,7 @@ export default function WorkerPage() {
           <h2 className="font-display text-xl font-semibold">Customers</h2>
           <p className="mt-1 max-w-xs text-sm text-ink-soft">Greet them and ask if it&apos;s their first time here.</p>
           <Link href="/worker/welcome" className="btn btn-primary mt-3 !py-2 text-sm">First visit: welcome QR</Link>
+          <Link href="/worker/sop" className="btn btn-ghost mt-3 ml-2 !py-2 text-sm">SOP &amp; what to say</Link>
         </div>
         <div>
           <h3 className="text-sm font-semibold">Forgot their password?</h3>

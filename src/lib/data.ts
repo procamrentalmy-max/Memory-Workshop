@@ -46,8 +46,8 @@ export const PACKAGES: Package[] = [
   },
   {
     id: "badge", name: "Memory Badge workshop", price: 15, sheets: 0, addOn: true,
-    includes: ["Make your own Memory Badge (a badge with NFC)", "It plays a video of up to 30 seconds", "Sets up your NFC account"],
-    note: "Studio time is extra: add Basic – 30 minutes (RM8) or Basic – 1 hour (RM14). More Memory Badges: RM2 for the badge plus the NFC price.",
+    includes: ["Make your own Memory Badge (a badge with NFC)", "It plays a video of up to 30 seconds", "Sets up your NFC account", "2 years of video hosting, then RM1 a month"],
+    note: "Longer hosting: 5 years RM25, 10 years RM40 or lifetime RM50 (instead of RM15). Studio time is extra: add Basic – 30 minutes (RM8) or Basic – 1 hour (RM14). More Memory Badges: RM2 for the badge plus the NFC price.",
   },
 ];
 export const PACKAGE_IDS = PACKAGES.map((p) => p.id);
@@ -91,14 +91,28 @@ export type Product = {
 export const priceLabel = (p: Pick<Product, "price" | "maxPrice">) =>
   p.maxPrice ? `${formatRM(p.price)}–${formatRM(p.maxPrice).replace(/^RM/, "")}` : p.price === 0 ? "Free" : formatRM(p.price);
 
-/** Bracelets: in Memory Maker and Complete Memory, and free for a new account made at the studio; extras priced here. */
+/** Bracelets and necklaces: a bracelet is in Memory Maker and Complete Memory, and free for a new account made at the studio. */
 export const BRACELET_NOTE = "Memory Maker and Complete Memory include one bracelet.";
 /** A welcome gift (their choice of a bracelet or an accordion booklet) for customers who create their account when they arrive. */
 export const NEW_ACCOUNT_GIFT = "New here? Create your account when you arrive and get a free bracelet or accordion booklet.";
 export const BRACELETS: Product[] = [
-  { name: "1 extra bracelet", price: 3.5 },
-  { name: "2 extra bracelets", price: 5.5 },
+  { name: "Bracelet", price: 5 },
+  { name: "2 bracelets", price: 8 },
+  { name: "Necklace", price: 15 },
 ];
+
+/**
+ * Video hosting for Memory Badges (keeps the videos playing). The Memory Badge workshop's RM15 includes 2 years;
+ * longer plans replace the RM15. `perMonth` is what staff say to compare the plans.
+ */
+export type HostingPlan = { name: string; price: number; perMonth?: string; note?: string };
+export const HOSTING_PLANS: HostingPlan[] = [
+  { name: "2 years", price: 15, note: "Included in the Memory Badge workshop, then RM1 a month" },
+  { name: "5 years", price: 25, perMonth: "about 40 sen a month" },
+  { name: "10 years", price: 40, perMonth: "about 33 sen a month" },
+  { name: "Lifetime", price: 50, note: "Just RM10 more than 10 years" },
+];
+export const HOSTING_RULE = "Your Memory Badge videos stay online for 2 years with the Memory Badge workshop (RM15), then RM1 a month. Or choose 5 years for RM25, 10 years for RM40, or lifetime for RM50.";
 
 /** Free to use, as much as you like, during every session. */
 export const FREE_SUPPLIES: { group: string; items: string[] }[] = [
@@ -195,7 +209,7 @@ export const FAQS = [
   },
   {
     q: "What is a Memory Badge?",
-    a: "A badge with NFC: a tiny tag inside plays your music or a video of up to 1 minute when you tap it with a phone, no app needed. Start with the Memory Badge workshop (RM15): it includes your first Memory Badge and sets up your account. After that, each Memory Badge is RM2 for the badge plus the NFC: RM1.50 for music, RM2 for a video up to 10 seconds, RM2.50 up to 30 seconds or RM5 up to 1 minute.",
+    a: "A badge with NFC: a tiny tag inside plays your music or a video of up to 1 minute when you tap it with a phone, no app needed. Start with the Memory Badge workshop (RM15): it includes your first Memory Badge and sets up your account. After that, each Memory Badge is RM2 for the badge plus the NFC: RM1.50 for music, RM2 for a video up to 10 seconds, RM2.50 up to 30 seconds or RM5 up to 1 minute. Videos stay online for 2 years with the workshop, then RM1 a month, or choose 5 years (RM25), 10 years (RM40) or lifetime (RM50).",
   },
   {
     q: "Is it suitable for kids?",
