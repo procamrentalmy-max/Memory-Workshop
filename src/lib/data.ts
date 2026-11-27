@@ -95,10 +95,11 @@ export const priceLabel = (p: Pick<Product, "price" | "maxPrice">) =>
 export const FREE_SUPPLIES: { group: string; items: string[] }[] = [
   { group: "Cutters & tapes", items: ["Shaped cutters and corner punches", "Washi and decorative tapes", "Stamps and gel pens", "Themed sticker sheets"] },
   { group: "Ribbons & accessories", items: ["Ribbons in every colour", "Embellishments and accessories", "Decorative papers", "Glue, scissors and the basics"] },
+  { group: "Bracelets & necklaces", items: ["Make your own bracelet", "Make your own necklace"] },
 ];
 
 /** Free in every workshop (shown as perks). */
-export const FREE_PERKS = "Every workshop comes with a huge selection of free cutters, ribbons, tapes and accessories, free water, and a free pastry tasting every 30 minutes.";
+export const FREE_PERKS = "Every workshop comes with free bracelet and necklace making, a huge selection of free cutters, ribbons, tapes and accessories, free water, and a free pastry tasting every 30 minutes.";
 
 /** Badges and keychains. */
 export const BADGES: Product[] = [

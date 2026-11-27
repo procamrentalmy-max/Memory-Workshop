@@ -4,7 +4,7 @@ import { BADGES, DRINKS, EXTRA_TIME_RULE, NFC_PRICES, NFC_RULE, PACKAGES, PASTRI
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Memory Badge workshop. Supplies, water and pastry tastings are free.",
+  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Memory Badge workshop. Bracelet and necklace making, supplies, water and pastry tastings are free.",
 };
 
 const TAPES = ["#c4553a", "#e0a93b", "#7d9a7e", "#3d5a80", "#5e3c2b"];
@@ -15,8 +15,8 @@ export default function PricingPage() {
       <p className="font-hand text-2xl text-accent">simple &amp; affordable</p>
       <h1 className="font-display text-4xl font-semibold sm:text-5xl">Pricing</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">
-        One package per person. In every workshop, a huge selection of cutters, ribbons, tapes and accessories is free, with
-        free water and a pastry tasting every 30 minutes.
+        One package per person. In every workshop, bracelet and necklace making and a huge selection of cutters, ribbons,
+        tapes and accessories are free, with free water and a pastry tasting every 30 minutes.
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
