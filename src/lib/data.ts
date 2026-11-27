@@ -34,15 +34,15 @@ export type Package = {
 
 /** Workshop packages, one per person. */
 export const PACKAGES: Package[] = [
-  { id: "basic30", name: "Basic – 30 minutes", price: 8, sheets: 0, includes: ["30 minutes in the studio", "Shared tools, stationery and stickers"] },
-  { id: "basic60", name: "Basic – 1 hour", price: 14, sheets: 0, includes: ["1 hour in the studio", "Shared tools, stationery and stickers"] },
+  { id: "basic30", name: "Basic – 30 minutes", price: 8, sheets: 0, includes: ["30 minutes in the studio", "Shared tools, stationery and stickers", "1 bracelet"] },
+  { id: "basic60", name: "Basic – 1 hour", price: 14, sheets: 0, includes: ["1 hour in the studio", "Shared tools, stationery and stickers", "1 bracelet"] },
   {
     id: "memory-maker", name: "Memory Maker", price: 21, sheets: 1, typical: "Most guests take 1.5–2 hours",
-    includes: ["1 hour in the studio", "1 Memory Badge (a badge with NFC)", "2 A5 photo prints"],
+    includes: ["1 hour in the studio", "1 Memory Badge (a badge with NFC)", "2 A5 photo prints", "1 bracelet"],
   },
   {
     id: "complete", name: "Complete Memory", price: 35, sheets: 2, typical: "Most guests take 2–2.5 hours",
-    includes: ["1 hour in the studio", "1 Memory Badge (a badge with NFC)", "2 A5 photo prints and 1 A4 print", "15-page scrapbook"],
+    includes: ["1 hour in the studio", "1 Memory Badge (a badge with NFC)", "2 A5 photo prints and 1 A4 print", "15-page scrapbook", "1 bracelet"],
   },
   {
     id: "badge", name: "Memory Badge workshop", price: 15, sheets: 0, addOn: true,
@@ -91,9 +91,9 @@ export type Product = {
 export const priceLabel = (p: Pick<Product, "price" | "maxPrice">) =>
   p.maxPrice ? `${formatRM(p.price)}–${formatRM(p.maxPrice).replace(/^RM/, "")}` : p.price === 0 ? "Free" : formatRM(p.price);
 
-/** Bracelet making: one free for each person in every workshop, then a price per extra bracelet. */
+/** Bracelet making: every package includes one bracelet; extra bracelets are priced here. */
+export const BRACELET_NOTE = "Every package includes one bracelet.";
 export const BRACELETS: Product[] = [
-  { name: "Your first bracelet", price: 0, note: "One free for each person, in every workshop" },
   { name: "1 extra bracelet", price: 3.5 },
   { name: "2 extra bracelets", price: 5.5 },
 ];
@@ -102,11 +102,10 @@ export const BRACELETS: Product[] = [
 export const FREE_SUPPLIES: { group: string; items: string[] }[] = [
   { group: "Cutters & tapes", items: ["Shaped cutters and corner punches", "Washi and decorative tapes", "Stamps and gel pens", "Themed sticker sheets"] },
   { group: "Ribbons & accessories", items: ["Ribbons in every colour", "Embellishments and accessories", "Decorative papers", "Glue, scissors and the basics"] },
-  { group: "Bracelets", items: ["Make your own bracelet: one free for each person", "Extra bracelets: RM3.50 for one, RM5.50 for two"] },
 ];
 
 /** Free in every workshop (shown as perks). */
-export const FREE_PERKS = "Every workshop comes with a free bracelet for each person, a huge selection of free cutters, ribbons, tapes and accessories, free water, and a free pastry tasting every 30 minutes.";
+export const FREE_PERKS = "Every workshop comes with a huge selection of free cutters, ribbons, tapes and accessories, free water, and a free pastry tasting every 30 minutes.";
 
 /** Badges and keychains. */
 export const BADGES: Product[] = [

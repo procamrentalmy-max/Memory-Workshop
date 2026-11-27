@@ -27,7 +27,7 @@ export default function Home() {
         <div>
           <p className="font-hand text-2xl text-accent">a hands-on memory creation studio</p>
           <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-sage/20 px-3 py-1 text-sm font-semibold text-[#3f5e41] ring-1 ring-sage/40">
-            <span aria-hidden>✂</span> A free bracelet, stationery, water &amp; pastry tastings
+            <span aria-hidden>✂</span> Free stationery, water &amp; a pastry tasting every 30 minutes
           </p>
           <h1 className="mt-2 font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
             Turn your favourite moments into keepsakes you made yourself.
@@ -165,14 +165,14 @@ export default function Home() {
             <p className="font-hand text-2xl text-mustard">while you create…</p>
             <h2 className="mt-1 font-display text-3xl font-semibold">Shop &amp; café</h2>
             <p className="mt-3 text-paper/80">
-              Make a free bracelet and choose from a huge selection of cutters, ribbons, tapes and accessories, all free, with
-              free water and a pastry tasting every 30 minutes. Add a coffee to your
+              Choose from a huge selection of cutters, ribbons, tapes and accessories, all free, with free water and a pastry
+              tasting every 30 minutes. Every package includes a bracelet. Add a coffee to your
               workshop from {formatRM(cheapestDrink)}, try a pastry, and take home a badge or two.
             </p>
             <Link href="/shop" className="btn mt-6 bg-paper text-ink hover:bg-white">Visit the shop &amp; café</Link>
           </div>
           <ul className="grid grid-cols-2 gap-3 text-sm">
-            {([["Cutters & tapes", true], ["Ribbons & accessories", true], ["Your first bracelet", true], ["Water & pastry tasting", true], ["Coffee & matcha", false], ["Badges & NFC", false]] as const).map(([x, free]) => (
+            {([["Cutters & tapes", true], ["Ribbons & accessories", true], ["Water", true], ["Pastry tasting", true], ["Coffee & matcha", false], ["Badges & bracelets", false]] as const).map(([x, free]) => (
               <li key={x} className={`flex items-center justify-between gap-2 rounded-lg border px-4 py-3 ${free ? "border-mustard/60" : "border-paper/20"}`}>
                 {x}
                 {free && <span className="rounded-full bg-mustard px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink">Free</span>}

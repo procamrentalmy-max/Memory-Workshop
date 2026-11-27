@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { BADGES, BRACELETS, DRINKS, FREE_SUPPLIES, NFC_PRICES, NFC_RULE, PASTRIES, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
+import { BADGES, BRACELETS, BRACELET_NOTE, DRINKS, FREE_SUPPLIES, NFC_PRICES, NFC_RULE, PASTRIES, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
 import { getCafeMenu } from "@/lib/store";
 import { siteFileSrc, type CafeMenu } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Shop & Café",
-  description: "A free bracelet, cutters, ribbons, tapes, accessories, water and pastry tastings in every workshop, plus Memory Badges, photo prints, scrapbooks and coffee.",
+  description: "Free cutters, ribbons, tapes, accessories, water and pastry tastings in every workshop, plus Memory Badges, photo prints, scrapbooks and coffee.",
 };
 
 function CafeList() {
@@ -66,13 +66,12 @@ export default function ShopPage() {
       <section className="relative mt-10 overflow-hidden rounded-2xl bg-sage/15 p-7 ring-1 ring-sage/40 sm:p-9">
         <span className="absolute -right-3 top-6 rotate-12 rounded-md bg-accent px-4 py-1 font-display text-lg font-bold text-accent-ink shadow">FREE</span>
         <p className="font-hand text-2xl text-[#3f5e41]">included in every workshop</p>
-        <h2 className="mt-1 font-display text-3xl font-semibold">A free bracelet, supplies &amp; pastry tastings</h2>
+        <h2 className="mt-1 font-display text-3xl font-semibold">Free supplies, water &amp; pastry tastings</h2>
         <p className="mt-2 max-w-2xl text-ink-soft">
-          Make your own bracelet (one free each; extras RM3.50, or RM5.50 for two), and choose from a huge selection of cutters, ribbons,
-          tapes and accessories: use as many as you like. Water is free, and we bring round a pastry tasting every 30
-          minutes.
+          Choose from a huge selection of cutters, ribbons, tapes and accessories, and use as many as you like. Water is
+          free, and we bring round a pastry tasting every 30 minutes. No extra charge, no counting.
         </p>
-        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-6 sm:grid-cols-2">
           {FREE_SUPPLIES.map((g) => (
             <div key={g.group}>
               <h3 className="font-display text-xl font-semibold">{g.group}</h3>
@@ -110,6 +109,7 @@ export default function ShopPage() {
           </ul>
           <p className="mt-3 text-xs text-ink-soft">{NFC_RULE}</p>
           <h3 className="mt-5 text-sm font-semibold">Bracelets</h3>
+          <p className="mt-0.5 text-xs text-ink-soft">{BRACELET_NOTE}</p>
           <ul className="mt-1 divide-y divide-dashed divide-line">
             {BRACELETS.map((b) => (
               <li key={b.name} className="flex items-baseline justify-between gap-4 py-2.5">
