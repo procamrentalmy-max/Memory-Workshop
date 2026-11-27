@@ -104,6 +104,11 @@ export default function SopPage() {
             can get 5 years for {formatRM(h5.price)}, which is {h5.perMonth}, 10 years for {formatRM(h10.price)}, which is{" "}
             {h10.perMonth}, or just add {formatRM(life.price - h10.price)} to get lifetime, {formatRM(life.price)}.
           </Say>
+          <p>If they hesitate at the longer plans:</p>
+          <Say>
+            If {formatRM(life.price)} feels like too big a commitment, you can just pick the 2 years first, {formatRM(h2.price)}. And if you
+            don&apos;t use it anymore after that, you can simply not pay for it.
+          </Say>
           <table className="w-full text-left">
             <thead className="text-ink-soft"><tr><th className="py-1 font-semibold">Hosting</th><th className="py-1 font-semibold">Price</th><th className="py-1 font-semibold">Notes</th></tr></thead>
             <tbody>
