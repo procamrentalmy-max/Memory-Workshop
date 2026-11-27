@@ -1,5 +1,6 @@
 "use server";
 
+import { formatPhone, getSession } from "@/lib/accounts";
 import { PRICING } from "@/lib/data";
 import { photoCount } from "@/lib/pricing";
 import { cleanPhotoPage } from "@/lib/sanitise";
@@ -42,7 +43,11 @@ export async function sendToPrint(_prev: PrintState, formData: FormData): Promis
     }
     // Every sheet at the extra-sheet price; staff take off the sheets included in their packages at the counter.
     const prints = pages.length * PRICING.photoSheet;
-    const reference = await addWalkIn({ name, tableLabel: table, order, totals: { session: 0, pages: prints, drinks: 0, total: prints } });
+    const session = await getSession().catch(() => null);
+    const reference = await addWalkIn({
+      name, tableLabel: table, order, totals: { session: 0, pages: prints, drinks: 0, total: prints },
+      customerId: session?.customer.id, phone: session ? formatPhone(session.customer.phone) : undefined,
+    });
     return { status: "success", reference, name, total: prints, photos: orderPhotoFiles(order).length, sentIds: pages.map((p) => p.id) };
   } catch (e) {
     console.error(e);

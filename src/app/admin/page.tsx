@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { connection } from "next/server";
-import QRCode from "qrcode";
 import { Suspense } from "react";
 import { formatRM, to12h } from "@/lib/data";
 import { layout } from "@/lib/collage";
@@ -12,6 +10,7 @@ import { siteFileSrc } from "@/lib/types";
 import { listTags, tagStats } from "@/lib/tags";
 import { tagStorage } from "@/lib/tagStorage";
 import { TAG_LENGTHS, lengthLabel } from "@/lib/tagFormat";
+import { qrSvg, siteBase } from "@/lib/siteUrl";
 import { changeStudioCode, createTagBatch, removeTagVideo, toggleTag } from "./actions";
 import { CopyButton } from "./CopyButton";
 import { MenuUploader } from "./MenuUploader";
@@ -68,7 +67,7 @@ async function StudioQr() {
   await connection();
   const code = await getStudioCode();
   const url = `${await siteBase()}/collage?studio=${code}`;
-  const svg = await QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#2a2420", light: "#ffffff" } });
+  const svg = await qrSvg(url);
   return (
     <div className="mt-4 flex flex-wrap items-start gap-6 rounded-xl border border-line bg-card p-4">
       <div className="w-44 shrink-0 [&>svg]:h-auto [&>svg]:w-full" role="img" aria-label="QR code for the studio's tables" dangerouslySetInnerHTML={{ __html: svg }} />
@@ -86,12 +85,6 @@ async function StudioQr() {
       </div>
     </div>
   );
-}
-
-/** Our public web address, for links printed on QR codes and written into NFC tags. */
-async function siteBase() {
-  const h = await headers();
-  return (process.env.NEXT_PUBLIC_SITE_URL || `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`).replace(/\/$/, "");
 }
 
 const R2_FREE_BYTES = 10 * 1024 ** 3;

@@ -15,6 +15,8 @@ export const PRICING = {
   photoSheet: 2.8, // RM per extra A4 photo sheet (an A4 photo print), beyond those in the packages
   a5Print: 1.8, // RM, a single A5 photo print
   a4Print: 2.8, // RM, a single A4 photo print
+  a4Colour: 1.5, // RM, an A4 colour print on plain paper
+  a4Mono: 0.5, // RM, an A4 black & white print on plain paper
   currency: "RM",
 };
 
@@ -115,11 +117,13 @@ export const NFC_RULE = "A Memory Badge is a badge with NFC. Your first comes wi
 /** Things to buy at the studio. */
 export const SHOP: { group: string; blurb: string; items: Product[] }[] = [
   {
-    group: "Photo prints & scrapbooks",
+    group: "Prints & scrapbooks",
     blurb: "Print more memories, and keep them somewhere special.",
     items: [
       { name: "A5 photo print", price: PRICING.a5Print },
       { name: "A4 photo print", price: PRICING.a4Print },
+      { name: "A4 colour print (plain paper)", price: PRICING.a4Colour },
+      { name: "A4 black & white print (plain paper)", price: PRICING.a4Mono },
       { name: "15-page scrapbook", price: 15 },
       { name: "30-page scrapbook", price: 20 },
       { name: "2 extra scrapbook pages", price: 1 },

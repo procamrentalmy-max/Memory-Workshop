@@ -1,5 +1,6 @@
 "use server";
 
+import { getSession } from "@/lib/accounts";
 import { ARRIVAL_TIMES, DRINKS, PACKAGE_IDS } from "@/lib/data";
 import { orderTotals, peopleCount } from "@/lib/pricing";
 import { orderPhotoFiles } from "@/lib/orderPhotos";
@@ -94,7 +95,8 @@ export async function placeBooking(_prev: CheckoutState, formData: FormData): Pr
   const payment = PAYMENT_METHODS[paymentKey as keyof typeof PAYMENT_METHODS];
   let reference: string;
   try {
-    reference = await addBooking({ name, email, phone, notes, payment, order, totals });
+    const session = await getSession().catch(() => null);
+    reference = await addBooking({ name, email, phone, notes, payment, order, totals }, session?.customer.id);
   } catch (e) {
     console.error(e);
     return { status: "error", message: "We couldn't save your booking. Please try again in a moment." };

@@ -3,7 +3,7 @@ import { STUDIO } from "@/lib/data";
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-line bg-paper-2">
+    <footer className="mt-24 border-t border-line bg-paper-2 print:hidden">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-4">
         <div className="md:col-span-2">
           <p className="font-display text-2xl font-semibold">{STUDIO.name}</p>

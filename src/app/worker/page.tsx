@@ -9,7 +9,9 @@ import { orderPackages } from "@/lib/pricing";
 import { dpiQuality, photoDpi, printSheet } from "@/lib/printing";
 import { getWorkerOrders, type Booking } from "@/lib/store";
 import type { OrderPage } from "@/lib/types";
+import Link from "next/link";
 import { AutoRefresh } from "./AutoRefresh";
+import { CustomerHelp } from "./CustomerHelp";
 import { OrderActions } from "./OrderActions";
 import { PrintButton } from "./PrintButton";
 
@@ -33,6 +35,18 @@ export default function WorkerPage() {
         actual size on A4. When the customer has paid and leaves, press <strong className="text-ink">Bill settled</strong>:
         their photos are deleted straight away.
       </p>
+      <section className="mt-6 grid gap-4 rounded-2xl border border-line bg-card p-4 sm:p-5 md:grid-cols-[auto_1fr] md:gap-8">
+        <div>
+          <h2 className="font-display text-xl font-semibold">Customers</h2>
+          <p className="mt-1 max-w-xs text-sm text-ink-soft">Greet them and ask if it&apos;s their first time here.</p>
+          <Link href="/worker/welcome" className="btn btn-primary mt-3 !py-2 text-sm">First visit: welcome QR</Link>
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold">Forgot their password?</h3>
+          <p className="mb-2 text-xs text-ink-soft">Find them, then let them scan a one-time sign-in QR code.</p>
+          <CustomerHelp />
+        </div>
+      </section>
       <Suspense fallback={<p className="mt-8 text-ink-soft">Loading orders…</p>}>
         <Orders />
       </Suspense>

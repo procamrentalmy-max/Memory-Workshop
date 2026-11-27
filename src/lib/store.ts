@@ -78,13 +78,13 @@ async function insertWithReference(row: Record<string, unknown>): Promise<string
 }
 
 /** An in-store customer sends photo pages to print. No booking: they pay at the counter. */
-export async function addWalkIn(w: { name: string; tableLabel: string; order: Order; totals: Booking["totals"] }): Promise<string> {
+export async function addWalkIn(w: { name: string; tableLabel: string; order: Order; totals: Booking["totals"]; customerId?: string; phone?: string }): Promise<string> {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
   const get = (t: string) => parts.find((p) => p.type === t)!.value;
   return insertWithReference({
     name: w.name,
     email: "",
-    phone: "",
+    phone: w.phone ?? "",
     notes: "",
     payment: "Pay at the counter",
     visit_date: `${get("year")}-${get("month")}-${get("day")}`,
@@ -95,6 +95,7 @@ export async function addWalkIn(w: { name: string; tableLabel: string; order: Or
     total: w.totals.total,
     walk_in: true,
     table_label: w.tableLabel || null,
+    customer_id: w.customerId ?? null,
   });
 }
 
@@ -118,7 +119,7 @@ export async function newStudioCode(): Promise<string> {
   return code;
 }
 
-export async function addBooking(b: Omit<Booking, "reference" | "createdAt">): Promise<string> {
+export async function addBooking(b: Omit<Booking, "reference" | "createdAt">, customerId?: string): Promise<string> {
   const visit = b.order.visit!;
   return insertWithReference({
     name: b.name,
@@ -132,6 +133,7 @@ export async function addBooking(b: Omit<Booking, "reference" | "createdAt">): P
     order: b.order,
     totals: b.totals,
     total: b.totals.total,
+    customer_id: customerId ?? null,
   });
 }
 

@@ -1,3 +1,4 @@
+import { getSession, linkTagToCustomer } from "@/lib/accounts";
 import { isJpeg, readMp4Info } from "@/lib/mp4";
 import { getTag, setTagVideo, tagCodeError } from "@/lib/tags";
 import { MAX_TAG_VIDEO_BYTES, TAG_FILE_RE } from "@/lib/tagFormat";
@@ -36,6 +37,9 @@ export async function POST(request: Request, ctx: RouteContext<"/api/tags/[id]/s
       videoFile: video, posterFile: posterOk ? poster : null, bytes,
       seconds: Math.round((info.seconds ?? maxSeconds) * 100) / 100, width, height,
     });
+    // Set up while logged in: the Memory Badge shows on the customer's page.
+    const session = await getSession().catch(() => null);
+    if (session) await linkTagToCustomer(id, session.customer.id);
     return Response.json({ ok: true, url: storage.publicUrl(video) });
   } catch (e) {
     console.error(e);
