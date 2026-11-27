@@ -68,7 +68,7 @@ export default function ShopPage() {
         <p className="font-hand text-2xl text-[#3f5e41]">included in every workshop</p>
         <h2 className="mt-1 font-display text-3xl font-semibold">A free bracelet, supplies &amp; pastry tastings</h2>
         <p className="mt-2 max-w-2xl text-ink-soft">
-          Make your own bracelet (one free each, more for RM1.70), and choose from a huge selection of cutters, ribbons,
+          Make your own bracelet (one free each; extras RM3.50, or RM5.50 for two), and choose from a huge selection of cutters, ribbons,
           tapes and accessories: use as many as you like. Water is free, and we bring round a pastry tasting every 30
           minutes.
         </p>

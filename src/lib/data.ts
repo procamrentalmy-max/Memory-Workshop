@@ -94,14 +94,15 @@ export const priceLabel = (p: Pick<Product, "price" | "maxPrice">) =>
 /** Bracelet making: one free for each person in every workshop, then a price per extra bracelet. */
 export const BRACELETS: Product[] = [
   { name: "Your first bracelet", price: 0, note: "One free for each person, in every workshop" },
-  { name: "Each extra bracelet", price: 1.7 },
+  { name: "1 extra bracelet", price: 3.5 },
+  { name: "2 extra bracelets", price: 5.5 },
 ];
 
 /** Free to use, as much as you like, during every session. */
 export const FREE_SUPPLIES: { group: string; items: string[] }[] = [
   { group: "Cutters & tapes", items: ["Shaped cutters and corner punches", "Washi and decorative tapes", "Stamps and gel pens", "Themed sticker sheets"] },
   { group: "Ribbons & accessories", items: ["Ribbons in every colour", "Embellishments and accessories", "Decorative papers", "Glue, scissors and the basics"] },
-  { group: "Bracelets", items: ["Make your own bracelet: one free for each person", "More bracelets RM1.70 each"] },
+  { group: "Bracelets", items: ["Make your own bracelet: one free for each person", "Extra bracelets: RM3.50 for one, RM5.50 for two"] },
 ];
 
 /** Free in every workshop (shown as perks). */
