@@ -11,7 +11,7 @@ export const STUDIO = {
 
 export const PRICING = {
   extraHalfHour: 7, // RM for each 30-minute block started after the grace period
-  graceMinutes: 10, // free minutes after a package's included time
+  graceMinutes: 15, // free minutes after a package's included time
   photoSheet: 2.8, // RM per extra A4 photo sheet (an A4 photo print), beyond those in the packages
   a5Print: 1.8, // RM, a single A5 photo print
   a4Print: 2.8, // RM, a single A4 photo print
