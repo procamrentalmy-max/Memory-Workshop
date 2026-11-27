@@ -107,7 +107,7 @@ export const FREE_SUPPLIES: { group: string; items: string[] }[] = [
 ];
 
 /** Free in every workshop (shown as perks). */
-export const FREE_PERKS = "Every workshop comes with a huge selection of free cutters, ribbons, tapes and accessories, free water, and a free pastry tasting every 30 minutes.";
+export const FREE_PERKS = "Every workshop comes with a huge selection of free cutters, ribbons, tapes and accessories, free water, and a free pastry tasting every hour.";
 
 /** Badges and keychains. */
 export const BADGES: Product[] = [
@@ -191,7 +191,7 @@ export const FAQS = [
   },
   {
     q: "Is there food and coffee?",
-    a: `Water is free, and we bring round a free pastry tasting every 30 minutes. Our café serves coffee, matcha, chocolate and pastries. Add an Americano or a pot of tea with free refills to your workshop for ${formatRM(drinkByName("Americano").sessionPrice)}, or a latte or cappuccino for ${formatRM(drinkByName("Latte").sessionPrice)}. ${SEED_COUPON}`,
+    a: `Water is free, and we bring round a free pastry tasting every hour. Our café serves coffee, matcha, chocolate and pastries. Add an Americano or a pot of tea with free refills to your workshop for ${formatRM(drinkByName("Americano").sessionPrice)}, or a latte or cappuccino for ${formatRM(drinkByName("Latte").sessionPrice)}. ${SEED_COUPON}`,
   },
   {
     q: "What is a Memory Badge?",

@@ -69,7 +69,7 @@ export default function ShopPage() {
         <h2 className="mt-1 font-display text-3xl font-semibold">Free supplies, water &amp; pastry tastings</h2>
         <p className="mt-2 max-w-2xl text-ink-soft">
           Choose from a huge selection of cutters, ribbons, tapes and accessories, and use as many as you like. Water is
-          free, and we bring round a pastry tasting every 30 minutes. No extra charge, no counting.
+          free, and we bring round a pastry tasting every hour. No extra charge, no counting.
         </p>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           {FREE_SUPPLIES.map((g) => (

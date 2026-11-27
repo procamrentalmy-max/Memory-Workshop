@@ -16,7 +16,7 @@ export default function PricingPage() {
       <h1 className="font-display text-4xl font-semibold sm:text-5xl">Pricing</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">
         One package per person. In every workshop, a huge selection of cutters, ribbons, tapes and accessories is free,
-        with free water and a pastry tasting every 30 minutes. {NEW_ACCOUNT_GIFT}
+        with free water and a pastry tasting every hour. {NEW_ACCOUNT_GIFT}
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
