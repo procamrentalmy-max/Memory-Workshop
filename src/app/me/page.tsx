@@ -46,7 +46,7 @@ async function MyPage({ searchParams }: { searchParams: PageProps<"/me">["search
   const { customer } = session;
   const [badges, orders] = await Promise.all([customerBadges(customer.id), customerOrders(customer.id)]);
   const firstName = customer.name.split(" ")[0];
-  // A free bracelet for a new account made on arrival: shown on the day the account was created.
+  // A welcome gift (bracelet or accordion booklet) for a new account made on arrival: shown on the day the account was created.
   const klDay = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: KL });
   const newToday = klDay(new Date(customer.createdAt)) === klDay(new Date());
 
@@ -57,8 +57,8 @@ async function MyPage({ searchParams }: { searchParams: PageProps<"/me">["search
 
       {newToday && (
         <section className="mt-6 rounded-2xl bg-mustard/20 p-5 ring-1 ring-mustard/50">
-          <h2 className="font-display text-xl font-semibold">Welcome gift: a free bracelet</h2>
-          <p className="mt-1 text-sm">Show this to our staff at the counter to make your free bracelet.</p>
+          <h2 className="font-display text-xl font-semibold">Welcome gift: a free bracelet or accordion booklet</h2>
+          <p className="mt-1 text-sm">Show this to our staff at the counter and choose a free bracelet or a free accordion booklet.</p>
         </section>
       )}
 

@@ -33,8 +33,8 @@ export default function WelcomePage() {
               name, mobile number and a password).
             </li>
             <li>
-              <strong>Welcome gift:</strong> their page shows &ldquo;Welcome gift: a free bracelet&rdquo; on the day they sign up.
-              Give them a free bracelet.
+              <strong>Welcome gift:</strong> their page shows &ldquo;Welcome gift&rdquo; on the day they sign up. Give them a free
+              bracelet or a free accordion booklet (their choice).
             </li>
             <li>
               When their page opens, help them <strong>add it to their home screen</strong>. The page shows the steps:
@@ -70,7 +70,7 @@ async function WelcomeCard() {
       <p className="font-hand text-3xl text-accent">welcome to {STUDIO.name}</p>
       <h2 className="mt-1 font-display text-3xl font-semibold">New here? Scan me</h2>
       <div className="mx-auto mt-5 w-64 max-w-full [&>svg]:h-auto [&>svg]:w-full" role="img" aria-label="QR code to create an account" dangerouslySetInnerHTML={{ __html: svg }} />
-      <p className="mt-4 text-sm text-ink-soft">Create your account and get a free bracelet, then add your page to your home screen.</p>
+      <p className="mt-4 text-sm text-ink-soft">Create your account and get a free bracelet or accordion booklet, then add your page to your home screen.</p>
       <p className="mt-2 break-all font-mono text-xs text-ink-soft">{url.replace(/^https?:\/\//, "")}</p>
     </section>
   );

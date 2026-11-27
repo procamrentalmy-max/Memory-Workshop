@@ -17,7 +17,7 @@ export default function JoinPage() {
         your home screen.
       </p>
       <p className="mt-3 rounded-xl bg-mustard/20 px-4 py-2.5 text-sm font-semibold">
-        Creating your account at the studio? Show your new page to our staff and get a free bracelet.
+        Creating your account at the studio? Show your new page to our staff and get a free bracelet or accordion booklet.
       </p>
       <div className="mt-6 rounded-2xl bg-card p-6 shadow-sm">
         <JoinForm />

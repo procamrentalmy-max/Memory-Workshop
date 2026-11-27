@@ -93,8 +93,8 @@ export const priceLabel = (p: Pick<Product, "price" | "maxPrice">) =>
 
 /** Bracelets: in Memory Maker and Complete Memory, and free for a new account made at the studio; extras priced here. */
 export const BRACELET_NOTE = "Memory Maker and Complete Memory include one bracelet.";
-/** A welcome gift for customers who create their account when they arrive. */
-export const NEW_ACCOUNT_GIFT = "New here? Create your account when you arrive and get a free bracelet.";
+/** A welcome gift (their choice of a bracelet or an accordion booklet) for customers who create their account when they arrive. */
+export const NEW_ACCOUNT_GIFT = "New here? Create your account when you arrive and get a free bracelet or accordion booklet.";
 export const BRACELETS: Product[] = [
   { name: "1 extra bracelet", price: 3.5 },
   { name: "2 extra bracelets", price: 5.5 },

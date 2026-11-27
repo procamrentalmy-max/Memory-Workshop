@@ -4,7 +4,7 @@ import { BADGES, BRACELETS, BRACELET_NOTE, DRINKS, NEW_ACCOUNT_GIFT, EXTRA_TIME_
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Memory Badge workshop. Supplies, water and pastry tastings are free, and new members get a free bracelet.",
+  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Memory Badge workshop. Supplies, water and pastry tastings are free, and new members get a free bracelet or accordion booklet.",
 };
 
 const TAPES = ["#c4553a", "#e0a93b", "#7d9a7e", "#3d5a80", "#5e3c2b"];
