@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BADGES, DRINKS, EXTRA_TIME_RULE, NFC_PRICES, NFC_RULE, PACKAGES, PASTRIES, PRICING, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
+import { BADGES, BRACELETS, DRINKS, EXTRA_TIME_RULE, NFC_PRICES, NFC_RULE, PACKAGES, PASTRIES, PRICING, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Memory Badge workshop. Bracelet and necklace making, supplies, water and pastry tastings are free.",
+  description: "Workshop packages from RM8: Basic, Memory Maker, Complete Memory and the Memory Badge workshop. A bracelet, supplies, water and pastry tastings are free.",
 };
 
 const TAPES = ["#c4553a", "#e0a93b", "#7d9a7e", "#3d5a80", "#5e3c2b"];
@@ -15,8 +15,8 @@ export default function PricingPage() {
       <p className="font-hand text-2xl text-accent">simple &amp; affordable</p>
       <h1 className="font-display text-4xl font-semibold sm:text-5xl">Pricing</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">
-        One package per person. In every workshop, bracelet and necklace making and a huge selection of cutters, ribbons,
-        tapes and accessories are free, with free water and a pastry tasting every 30 minutes.
+        One package per person. In every workshop, each person makes one bracelet free, and a huge selection of cutters,
+        ribbons, tapes and accessories is free too, with free water and a pastry tasting every 30 minutes.
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -45,7 +45,7 @@ export default function PricingPage() {
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <section className="relative rounded-2xl bg-card p-8 shadow-sm">
           <span className="washi -top-2 left-8 rotate-3" style={{ ["--tape" as string]: "#7d9a7e" }} />
-          <h2 className="font-display text-2xl font-semibold">Badges &amp; NFC</h2>
+          <h2 className="font-display text-2xl font-semibold">Badges, NFC &amp; bracelets</h2>
           <ul className="mt-4 divide-y divide-dashed divide-line text-sm">
             {BADGES.map((b) => (
               <li key={b.name} className="flex items-baseline justify-between gap-4 py-2">
@@ -64,6 +64,15 @@ export default function PricingPage() {
             ))}
           </ul>
           <p className="mt-3 text-xs text-ink-soft">{NFC_RULE}</p>
+          <h3 className="mt-5 text-sm font-semibold">Bracelets</h3>
+          <ul className="mt-1 divide-y divide-dashed divide-line text-sm">
+            {BRACELETS.map((b) => (
+              <li key={b.name} className="flex items-baseline justify-between gap-4 py-2">
+                <span>{b.name}{b.note && <span className="block text-xs text-ink-soft">{b.note}</span>}</span>
+                <span className="font-semibold">{priceLabel(b)}</span>
+              </li>
+            ))}
+          </ul>
         </section>
         {SHOP.map((g) => (
           <section key={g.group} className="relative rounded-2xl bg-card p-8 shadow-sm">
