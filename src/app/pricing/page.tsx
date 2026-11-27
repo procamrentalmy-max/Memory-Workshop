@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BADGES, DRINKS, EXTRA_TIME_RULE, NFC_PRICES, NFC_RULE, PACKAGES, PASTRIES, PRICING, SEED_COUPON, SHOP, formatRM } from "@/lib/data";
+import { BADGES, DRINKS, EXTRA_TIME_RULE, NFC_PRICES, NFC_RULE, PACKAGES, PASTRIES, PRICING, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -108,7 +108,7 @@ export default function PricingPage() {
               {PASTRIES.map((p) => (
                 <li key={p.name} className="flex items-baseline justify-between gap-4 py-2">
                   <span>{p.name}</span>
-                  <span className="font-semibold">{formatRM(p.price)}</span>
+                  <span className="font-semibold">{priceLabel(p)}</span>
                 </li>
               ))}
             </ul>

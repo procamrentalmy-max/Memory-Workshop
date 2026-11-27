@@ -83,8 +83,13 @@ export function formatRM(amount: number) {
 export type Product = {
   name: string;
   price: number;
+  maxPrice?: number; // for a price range, e.g. RM3.50–6.50
   note?: string;
 };
+
+/** "RM7.00", or "RM3.50–6.50" for a range. */
+export const priceLabel = (p: Pick<Product, "price" | "maxPrice">) =>
+  p.maxPrice ? `${formatRM(p.price)}–${formatRM(p.maxPrice).replace(/^RM/, "")}` : formatRM(p.price);
 
 /** Free to use, as much as you like, during every session. */
 export const FREE_SUPPLIES: { group: string; items: string[] }[] = [
@@ -147,7 +152,8 @@ const drinkByName = (name: string) => DRINKS.find((d) => d.name === name)!;
 
 export const PASTRIES: Product[] = [
   { name: "Apple fritter", price: 6.5 },
-  { name: "Peach danish", price: 7 },
+  { name: "Danish pastry", price: 7 },
+  { name: "Croissant", price: 3.5, maxPrice: 6.5 },
 ];
 
 /** Every drink at the regular price comes with a coupon printed on seed paper. */

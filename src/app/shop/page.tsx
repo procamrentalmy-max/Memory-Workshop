@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { BADGES, DRINKS, FREE_SUPPLIES, NFC_PRICES, NFC_RULE, PASTRIES, SEED_COUPON, SHOP, formatRM } from "@/lib/data";
+import { BADGES, DRINKS, FREE_SUPPLIES, NFC_PRICES, NFC_RULE, PASTRIES, SEED_COUPON, SHOP, formatRM, priceLabel } from "@/lib/data";
 import { getCafeMenu } from "@/lib/store";
 import { siteFileSrc, type CafeMenu } from "@/lib/types";
 
@@ -29,7 +29,7 @@ function CafeList() {
         {PASTRIES.map((p) => (
           <li key={p.name} className="flex items-baseline justify-between gap-4 py-2.5">
             <span>{p.name}</span>
-            <span className="font-semibold">{formatRM(p.price)}</span>
+            <span className="font-semibold">{priceLabel(p)}</span>
           </li>
         ))}
       </ul>
